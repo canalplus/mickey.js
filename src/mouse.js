@@ -132,7 +132,8 @@
   };
 
   function Mouse(parent, options) {
-    var locked  = false;
+    var locked = false;
+    var inited = false;
 
     options = _.defaults(options || {}, {
       hoverClass: 'hover',
@@ -181,6 +182,12 @@
       return !!el && !_.isUndefined(el.dataset.selected);
     }
 
+    // Finds and returns the closest element from a given vector
+    // position or Box to a set of DOM elements.
+    //
+    // If a direction is given as a vector or string 'up', 'left'
+    // 'down', 'right', the closest element will be searched in the
+    // halfspace defined by the direction and the position.
     function findClosest(pos, els, dir, area) {
       var v  = dir ? VECS[dir] : nil();
       var v_ = opp(v);
@@ -207,6 +214,8 @@
       return res && res.el;
     }
 
+    // Finds and returns the element that contains the given
+    // position from a set of given DOM elements.
     function findHovered(pos, els) {
       var box = createBox(findClosest(pos, els));
       if (box && box.contains(pos)) {
@@ -214,15 +223,24 @@
       }
     }
 
-    function findAreas() {
+    // Find all the areas in the DOM.
+    function allAreas() {
       var els = $find(parent, $area);
-      if (!els.length) { return [parent]; }
-      return _.some(els, isSelected) ?
-        els.sort(selectedFirst) :
-        els;
+      return els.length ? els: [parent];
     }
 
-    function allSelectable(el, dir) {
+    // Find the default area: the one containing data-selected
+    // attribute or (if none) the first one in the DOM.
+    function defaultArea() {
+      var els = allAreas();
+      if (_.some(els, isSelected)) {
+        els.sort(selectedFirst);
+      }
+      return _.first(els);
+    }
+
+    // Find all selectable elements inside the given DOM element.
+    function allSelectables(el, dir) {
       var els = $find(el, el.dataset.area || $href);
       var lim = _.some(els, isLimit);
       if (lim) { els.sort(limitLast); }
@@ -235,12 +253,28 @@
       }
     }
 
-    function firstSelectable(el) {
-      return isArea(el) && allSelectable(el)[0];
+    // Find the default selectable element inside an area: the first
+    // element in the DOM tree which is not a data-limit element.
+    function defaultSelectable(el) {
+      return isArea(el) && _.first(allSelectables(el));
     }
 
     function fallback(dir) {
-      return mouse.focus(mouse.closest() || findAreas()[0], dir, true);
+      return mouse.focus(mouse.closest() || defaultArea(), dir, true);
+    }
+
+    function bind() {
+      parent.addEventListener('DOMSubtreeModified', watch);
+      if (!options.noListener) {
+        document.addEventListener('keydown', keyListener);
+      }
+    }
+
+    function unbind() {
+      parent.removeEventListener('DOMSubtreeModified', watch);
+      if (!options.noListener) {
+        document.removeEventListener('keydown', keyListener);
+      }
     }
 
     mouse.focus = function(el, dir, fallback) {
@@ -249,7 +283,7 @@
       }
 
       if (isArea(el)) {
-        return mouse.focus(firstSelectable(el));
+        return mouse.focus(defaultSelectable(el));
       }
 
       var box = createBox(el);
@@ -292,7 +326,7 @@
     };
 
     mouse.move = function(dir) {
-      if (locked) {
+      if (locked || !inited) {
         throw new Error('mouse: locked');
       }
 
@@ -305,7 +339,7 @@
       // find the closest element in the same area as the current focused
       // element
       var curAr = mouse.area();
-      var newEl = findClosest(boxEl, allSelectable(curAr, dir), dir);
+      var newEl = findClosest(boxEl, allSelectables(curAr, dir), dir);
       if (newEl) {
         return mouse.focus(newEl, dir);
       }
@@ -318,7 +352,7 @@
       // if no close element has been found, we may have to search for the
       // closest area, or check for a limit element
       var boxAr = createBox(curAr);
-      var newAr = findClosest(boxAr, findAreas(), dir, true);
+      var newAr = findClosest(boxAr, allAreas(), dir, true);
       if (!newAr) {
         if (checkLimit(mouse.el, dir)) {
           mouse.click();
@@ -326,7 +360,7 @@
         return;
       }
 
-      var els = allSelectable(newAr);
+      var els = allSelectables(newAr);
       if (!_.isUndefined(curAr.dataset.track)) {
         curAr.dataset.position = JSON.stringify(mouse.pos);
       }
@@ -335,14 +369,14 @@
       }
 
       if (!newEl) {
-        newEl = els[0];
+        newEl = _.first(els);
       }
 
       return mouse.focus(newEl, dir);
     };
 
     mouse.click = function(el) {
-      if (locked) {
+      if (locked || !inited) {
         throw new Error('mouse: locked');
       }
       el = el || mouse.el;
@@ -355,6 +389,7 @@
       dispatchEvent(el, 'click');
     };
 
+    // current mouse area
     mouse.area = function(el) {
       el = el || mouse.el;
       while (el && el !== parent) {
@@ -364,33 +399,22 @@
       return parent;
     };
 
+    // closest element to the mouse
     mouse.closest = function(ar) {
-      var els = _.flatten(_.map(ar ? [ar] : findAreas(), allSelectable));
+      var els = _.flatten(_.map(ar ? [ar] : allAreas(), allSelectables));
       return findClosest(mouse.pos, els);
     };
 
+    // element hovered by the mouse
     mouse.hovered = function(ar) {
-      var els = _.flatten(_.map(ar ? [ar] : findAreas(), allSelectable));
+      var els = _.flatten(_.map(ar ? [ar] : allAreas(), allSelectables));
       return findHovered(mouse.pos, els);
     };
 
+    // element from circular move inside the given area
     mouse.circular = function(ar) {
       ar = ar || mouse.ar;
-      return findClosest(reflect(mouse.pos, createBox(ar).center()), allSelectable(ar));
-    };
-
-    mouse.bind = function() {
-      mouse.unbind();
-      parent.addEventListener('DOMSubtreeModified', watch);
-      if (!options.noListener) {
-        document.addEventListener('keydown', keyListener);
-      }
-    };
-
-    mouse.unbind = function() {
-      parent.removeEventListener('DOMSubtreeModified', mouse.init);
-      parent.removeEventListener('DOMSubtreeModified', watch);
-      document.removeEventListener('keydown', keyListener);
+      return findClosest(reflect(mouse.pos, createBox(ar).center()), allSelectables(ar));
     };
 
     mouse.block = function() {
@@ -401,8 +425,9 @@
       locked = false;
     };
 
+    // clear mouse
     mouse.clear = function() {
-      mouse.unbind();
+      unbind();
       mouse.pos = nil();
       mouse.el = null;
       mouse.ar = null;
@@ -410,38 +435,45 @@
       locked = false;
     };
 
+    // focus update on current area
     mouse.update = function() {
       mouse.focus(mouse.closest(mouse.ar));
     };
 
+    // mouse initialization
     mouse.init = function() {
-      var el;
-      if (options.position) {
-        el = mouse.hovered();
-      } else {
-        el = firstSelectable(findAreas()[0]);
+      if (inited) {
+        throw new Error('mouse: already initialized');
       }
 
-      mouse.unbind();
-      if (mouse.focus(el)) {
-        mouse.bind();
-      } else {
-        parent.addEventListener('DOMSubtreeModified', mouse.init);
-      }
+      bind();
 
+      var el = options.position ?
+        mouse.hovered() :
+        defaultSelectable(defaultArea());
+
+      inited = mouse.focus(el);
       return mouse;
     };
 
     var watch = _.debounce(function() {
-      if (parent.contains(mouse.el)) { return; }
+      if (!inited) {
+        return mouse.init();
+      }
+
+      if (parent.contains(mouse.el)) {
+        return;
+      }
+
       var el, ar = parent.contains(mouse.ar) && mouse.ar;
       switch(ar && ar.dataset.navPolicy) {
       default:
       case 'closest':  el = mouse.closest(ar);   break;
       case 'hovered':  el = mouse.hovered(ar);   break;
       case 'circular': el = mouse.circular(ar);  break;
-      case 'first':    el = firstSelectable(ar); break;
+      case 'first':    el = defaultSelectable(ar); break;
       }
+
       mouse.focus(el, null, true);
     }, 0);
 
