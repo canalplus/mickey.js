@@ -27,6 +27,20 @@
     down:  'bottom',
   };
 
+  function observer(target, fn) {
+    // create an observer instance
+    var obs;
+    if (!_.isUndefined(window.MutationObserver)) {
+      obs = new MutationObserver(fn);
+      obs.observe(target, { attributes: true, childList: true, characterData: true, subtree: true });
+    } else {
+      fn = _.debounce(fn, 0);
+      target.addEventListener('DOMSubtreeModified', fn);
+      obs = { disconnect: function() { target.removeEventListener('DOMSubtreeModified', fn); } };
+    }
+    return obs;
+  }
+
   function $first(el, selector) {
     return el.querySelector(selector);
   }
@@ -263,13 +277,14 @@
       return mouse.focus(mouse.closest() || defaultArea(), dir, true);
     }
 
+    var obs;
     function bind() {
-      parent.addEventListener('DOMSubtreeModified', watch);
+      obs = observer(parent, watch);
       document.addEventListener('keydown', keyListener);
     }
 
     function unbind() {
-      parent.removeEventListener('DOMSubtreeModified', watch);
+      obs.disconnect();
       document.removeEventListener('keydown', keyListener);
     }
 
@@ -460,7 +475,7 @@
       return mouse;
     };
 
-    var watch = _.debounce(function() {
+    var watch = function() {
       if (!inited) {
         return mouse.init();
       }
@@ -480,7 +495,7 @@
       }
 
       mouse.focus(el, null, true);
-    }, 0);
+    };
 
     return mouse;
   }
