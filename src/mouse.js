@@ -20,9 +20,12 @@
     13: 'click'
   };
 
-  var $area = '[data-area]';
-  var $href = '[data-href],[data-click],[data-limit]';
-  var $selected = '[data-selected]';
+  var LIMITS = {
+    left:  'left',
+    up:    'top',
+    right: 'right',
+    down:  'bottom',
+  };
 
   function $first(el, selector) {
     return el.querySelector(selector);
@@ -81,17 +84,13 @@
   }
 
   function dataSorter(name, ord) {
-    return function(a, b) {
-      var sA = !_.isUndefined(a.dataset[name]);
-      var sB = !_.isUndefined(b.dataset[name]);
-      if (sA && !sB) { return  ord; }
-      if (!sA && sB) { return -ord; }
-      return 0;
+    return function(el) {
+      return _.isUndefined(el.dataset[name]) ? 0 : ord;
     };
   }
 
-  var limitLast     = dataSorter('limit', 1);
-  var selectedFirst = dataSorter('selected', -1);
+  var limitLast     = dataSorter('navLimit', 1);
+  var selectedFirst = dataSorter('navSelected', -1);
 
   function createBox(el) {
     if (!el) { return; }
@@ -132,6 +131,10 @@
   };
 
   function Mouse(parent, options) {
+    if (!parent) {
+      throw new Error('mouse: should pass a parent DOM element');
+    }
+
     var locked = false;
     var inited = false;
 
@@ -139,7 +142,10 @@
       hoverClass: 'hover',
       areaClass:  'hover',
       overlap: 0,
-      pos: null
+      pos: null,
+      keyListener: keyListener,
+      $area: '[data-nav-area]',
+      $href: null
     });
 
     var mouse = {
@@ -167,19 +173,19 @@
     }
 
     function isArea(el) {
-      return !!el && (!_.isUndefined(el.dataset.area) || el === parent);
+      return !!el && (!_.isUndefined(el.dataset.navArea) || el === parent);
     }
 
     function isLimit(el) {
-      return !!el && !_.isUndefined(el.dataset.limit);
+      return !!el && !_.isUndefined(el.dataset.navLimit);
     }
 
     function checkLimit(el, dir) {
-      return !!dir && isLimit(el) && el.dataset.limit === dir;
+      return !!dir && isLimit(el) && el.dataset.navLimit === LIMITS[dir];
     }
 
     function isSelected(el) {
-      return !!el && !_.isUndefined(el.dataset.selected);
+      return !!el && !_.isUndefined(el.dataset.navSelected);
     }
 
     // Finds and returns the closest element from a given vector
@@ -225,7 +231,7 @@
 
     // Find all the areas in the DOM.
     function allAreas() {
-      var els = $find(parent, $area);
+      var els = $find(parent, options.$area);
       return els.length ? els: [parent];
     }
 
@@ -234,16 +240,16 @@
     function defaultArea() {
       var els = allAreas();
       if (_.some(els, isSelected)) {
-        els.sort(selectedFirst);
+        els = _.sortBy(els, selectedFirst);
       }
       return _.first(els);
     }
 
     // Find all selectable elements inside the given DOM element.
     function allSelectables(el, dir) {
-      var els = $find(el, el.dataset.area || $href);
+      var els = $find(el, el.dataset.navArea || options.$href);
       var lim = _.some(els, isLimit);
-      if (lim) { els.sort(limitLast); }
+      if (lim) { els = _.sortBy(els, limitLast); }
       if (lim && dir) {
         return _.filter(els, function(el) {
           return !isLimit(el) || checkLimit(el, dir);
@@ -253,28 +259,18 @@
       }
     }
 
-    // Find the default selectable element inside an area: the first
-    // element in the DOM tree which is not a data-limit element.
-    function defaultSelectable(el) {
-      return isArea(el) && _.first(allSelectables(el));
-    }
-
     function fallback(dir) {
-      return mouse.focus(mouse.closest() || defaultArea(), dir, true);
+      return mouse.focus(mouse.closest(allAreas()) || defaultArea(), dir, true);
     }
 
     function bind() {
       parent.addEventListener('DOMSubtreeModified', watch);
-      if (!options.noListener) {
-        document.addEventListener('keydown', keyListener);
-      }
+      document.addEventListener('keydown', keyListener);
     }
 
     function unbind() {
       parent.removeEventListener('DOMSubtreeModified', watch);
-      if (!options.noListener) {
-        document.removeEventListener('keydown', keyListener);
-      }
+      document.removeEventListener('keydown', keyListener);
     }
 
     mouse.focus = function(el, dir, fallback) {
@@ -283,7 +279,7 @@
       }
 
       if (isArea(el)) {
-        return mouse.focus(defaultSelectable(el));
+        return mouse.focus(mouse.defaults(el));
       }
 
       var box = createBox(el);
@@ -344,7 +340,7 @@
         return mouse.focus(newEl, dir);
       }
 
-      var zidx = +curAr.dataset.zIndex;
+      var zidx = +curAr.dataset.navZIndex;
       if (zidx > 0) {
         return;
       }
@@ -361,11 +357,11 @@
       }
 
       var els = allSelectables(newAr);
-      if (!_.isUndefined(curAr.dataset.track)) {
-        curAr.dataset.position = JSON.stringify(mouse.pos);
+      if (!_.isUndefined(curAr.dataset.navTrack)) {
+        curAr.dataset.navTrackPos = JSON.stringify(mouse.pos);
       }
-      if (!_.isUndefined(newAr.dataset.position)) {
-        newEl = findClosest(JSON.parse(newAr.dataset.position), els);
+      if (!_.isUndefined(newAr.dataset.navTrackPos)) {
+        newEl = findClosest(JSON.parse(newAr.dataset.navTrackPos), els);
       }
 
       if (!newEl) {
@@ -399,22 +395,22 @@
       return parent;
     };
 
-    // closest element to the mouse
     mouse.closest = function(ar) {
       var els = _.flatten(_.map(ar ? [ar] : allAreas(), allSelectables));
       return findClosest(mouse.pos, els);
     };
 
-    // element hovered by the mouse
-    mouse.hovered = function(ar) {
-      var els = _.flatten(_.map(ar ? [ar] : allAreas(), allSelectables));
+    mouse.defaults = function(ar) {
+      return _.first(allSelectables(ar || defaultArea()));
+    };
+
+    mouse.hovered = function() {
+      var els = _.flatten(_.map(allAreas(), allSelectables));
       return findHovered(mouse.pos, els);
     };
 
-    // element from circular move inside the given area
-    mouse.circular = function(ar) {
-      ar = ar || mouse.ar;
-      return findClosest(reflect(mouse.pos, createBox(ar).center()), allSelectables(ar));
+    mouse.circular = function() {
+      return findClosest(reflect(mouse.pos, createBox(mouse.ar).center()), allSelectables(mouse.ar));
     };
 
     mouse.block = function() {
@@ -437,7 +433,7 @@
 
     // focus update on current area
     mouse.update = function() {
-      mouse.focus(mouse.closest(mouse.ar));
+      mouse.focus(mouse.closest());
     };
 
     // mouse initialization
@@ -450,7 +446,7 @@
 
       var el = options.position ?
         mouse.hovered() :
-        defaultSelectable(defaultArea());
+        mouse.defaults();
 
       inited = mouse.focus(el);
       return mouse;
@@ -465,13 +461,14 @@
         return;
       }
 
-      var el, ar = parent.contains(mouse.ar) && mouse.ar;
-      switch(ar && ar.dataset.navPolicy) {
+      // TODO: handle mouse.ar disapearance ?
+      var el, ar = mouse.ar;
+      switch(ar.dataset.navPolicy) {
       default:
-      case 'closest':  el = mouse.closest(ar);   break;
-      case 'hovered':  el = mouse.hovered(ar);   break;
-      case 'circular': el = mouse.circular(ar);  break;
-      case 'first':    el = defaultSelectable(ar); break;
+      case 'closest':  el = mouse.closestInArea(); break;
+      case 'defaults': el = mouse.defaultsInArea(); break;
+      case 'hovered':  el = mouse.hovered(); break;
+      case 'circular': el = mouse.circular(); break;
       }
 
       mouse.focus(el, null, true);
