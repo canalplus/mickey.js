@@ -260,7 +260,7 @@
     }
 
     function fallback(dir) {
-      return mouse.focus(mouse.closest(allAreas()) || defaultArea(), dir, true);
+      return mouse.focus(mouse.closest() || defaultArea(), dir, true);
     }
 
     function bind() {
@@ -400,8 +400,16 @@
       return findClosest(mouse.pos, els);
     };
 
+    mouse.closestInArea = function() {
+      return mouse.closest(mouse.ar);
+    };
+
     mouse.defaults = function(ar) {
       return _.first(allSelectables(ar || defaultArea()));
+    };
+
+    mouse.defaultsInArea = function() {
+      return mouse.defaults(mouse.ar);
     };
 
     mouse.hovered = function() {
