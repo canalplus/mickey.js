@@ -8,9 +8,11 @@
   "description": "Your ally for web applications over Remote Controls",
   "main": "src/mickey.js",
   "keywords": [
-    "remote",
-    "control",
-    "mouse"
+    "remote control",
+    "rc",
+    "mouse",
+    "stb",
+    "embedded"
   ],
   "license": "Apache License v2.0",
   "ignore": [

@@ -1,0 +1,12 @@
+{
+  "browser": true,
+  "camelcase": true,
+  "eqeqeq": true,
+  "noarg": true,
+  "trailing": true,
+  "strict": true,
+  "undef": true,
+  "expr": true,
+  "newcap": false,
+  "predef": ["_"]
+}
