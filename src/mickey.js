@@ -220,8 +220,8 @@
         return dot(vec(pos, p), v) >= -options.overlap;
       };
 
-      var res = _.map(_.filter(_.compact(_.map(els, createBox)), function(b) {
-        return halfSpace(area ? b.bound(v_) : b.center());
+      var res = _.map(_.filter(_.map(els, createBox), function(b) {
+        return b && halfSpace(area ? b.bound(v_) : b.center());
       }), function(b) {
         return {
           el:   b.el,
