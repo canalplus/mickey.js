@@ -4,7 +4,7 @@
 
 Web UIs generally rely on DOM and click events. When building webapps running on embedded devices, accessible through remote control, you can only treat keypress events, which make it very difficult to build interoperable and stateless components.
 
-mickey.js offers a DOM abstraction, to build more generic and simple applications that can be used with a remote control or a mouse.
+mickey.js offers a DOM abstraction, to build more generic and simple applications that can be used with a remote control or a mouse. The only thing you need to do is to __declaratively__ define in the DOM navigation areas.
 
 ## Examples
 
@@ -38,12 +38,14 @@ See the `examples` directory for examples using Backbone.
 
 ## Installation
 
-You can simply download the `src/mouse.js` file, or use bower if you prefer.
+The only dependy of mickey.js is [lodash](http://lodash.com/) or [underscore.js](http://underscorejs.org/).
+
+You can simply download the `src/mickey.js` file, or use bower if you prefer.
 
 ```shell
 bower install --save mickey.js
 ```
 
 ```html
-<script src="bower_components/mickey.js/src/mouse.js"></script>
+<script src="bower_components/mickey.js/src/mickey.js"></script>
 ```
