@@ -70,7 +70,7 @@ var app = app || {};
         this.view.stopListening();
       }
       this.view  = view.render();
-      this.mouse = new Mouse(document.querySelector('#main')).init();
+      this.mouse = new Mickey(document.querySelector('#main')).init();
     }
   });
 

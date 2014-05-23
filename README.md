@@ -1,10 +1,10 @@
-# IRMouse
+# mickey.js
 
-**IRMouse** is a Javascript library for building webapps used with a remote control or keyboard layout, and without a mouse or pointer device.
+**mickey.js** is a Javascript library for building webapps used with a remote control or keyboard layout, and without a mouse or pointer device.
 
 Web UIs generally rely on DOM and click events. When building webapps running on embedded devices, accessible through remote control, you can only treat keypress events, which make it very difficult to build interoperable and stateless components.
 
-IRMouse offers a DOM abstraction, to build more generic and simple applications that can be used with a remote control or a mouse.
+mickey.js offers a DOM abstraction, to build more generic and simple applications that can be used with a remote control or a mouse.
 
 ## Examples
 
@@ -30,7 +30,7 @@ IRMouse offers a DOM abstraction, to build more generic and simple applications 
 </body>
 
 <script>
-new Mouse(document.body).init();
+new Mickey(document.body).init();
 </script>
 ```
 
@@ -41,9 +41,9 @@ See the `examples` directory for examples using Backbone.
 You can simply download the `src/mouse.js` file, or use bower if you prefer.
 
 ```shell
-bower install --save irmouse
+bower install --save mickey.js
 ```
 
 ```html
-<script src="bower_components/irmouse/src/mouse.js"></script>
+<script src="bower_components/mickey.js/src/mouse.js"></script>
 ```

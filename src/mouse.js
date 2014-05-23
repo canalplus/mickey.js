@@ -2,7 +2,7 @@
   'use strict';
 
   if (!global._) {
-    throw new Error('autonav: lodash or underscore is required');
+    throw new Error('mickey: lodash or underscore is required');
   }
 
   var VECS = {
@@ -144,9 +144,9 @@
     };
   };
 
-  function Mouse(parent, options) {
+  function Mickey(parent, options) {
     if (!parent) {
-      throw new Error('mouse: should pass a parent DOM element');
+      throw new Error('mickey: should pass a parent DOM element');
     }
 
     var locked = false;
@@ -338,12 +338,12 @@
 
     mouse.move = function(dir) {
       if (locked || !inited) {
-        throw new Error('mouse: locked');
+        throw new Error('mickey: locked');
       }
 
       var boxEl = createBox(mouse.el);
       if (!boxEl) {
-        if (!fallback(dir)) { throw new Error('mouse: cannot move'); }
+        if (!fallback(dir)) { throw new Error('mickey: cannot move'); }
         return;
       }
 
@@ -388,14 +388,14 @@
 
     mouse.click = function(el) {
       if (locked || !inited) {
-        throw new Error('mouse: locked');
+        throw new Error('mickey: locked');
       }
       el = el || mouse.el;
       if (!parent.contains(el)) {
-        throw new Error('mouse: cannot click on non visible element');
+        throw new Error('mickey: cannot click on non visible element');
       }
       if (!el && !fallback()) {
-        throw new Error('mouse: cannot click');
+        throw new Error('mickey: cannot click');
       }
       dispatchEvent(el, 'click');
     };
@@ -462,7 +462,7 @@
     // mouse initialization
     mouse.init = function() {
       if (inited) {
-        throw new Error('mouse: already initialized');
+        throw new Error('mickey: already initialized');
       }
 
       bind();
@@ -500,6 +500,6 @@
     return mouse;
   }
 
-  global.Mouse = Mouse;
+  global.Mickey = Mickey;
 
 })(this);
