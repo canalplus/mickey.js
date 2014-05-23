@@ -5,7 +5,7 @@
     throw new Error('mickey: lodash or underscore is required');
   }
 
-  var VECS = {
+  var BASE = {
     left:  { x: -1, y: 0 },
     up:    { x: 0,  y: -1 },
     right: { x: 1,  y: 0 },
@@ -121,8 +121,8 @@
 
   Box.prototype.contains = function(pos) {
     var c = this.center();
-    var v = vec(c, this.bound(VECS.down));
-    var h = vec(c, this.bound(VECS.right));
+    var v = vec(c, this.bound(BASE.down));
+    var h = vec(c, this.bound(BASE.right));
     var x = vec(c, pos);
     return (
       2 * Math.abs(dot(v, x)) <= this._r.height &&
@@ -209,7 +209,7 @@
     // 'down', 'right', the closest element will be searched in the
     // halfspace defined by the direction and the position.
     function findClosest(pos, els, dir, area) {
-      var v  = dir ? VECS[dir] : nil();
+      var v  = dir ? BASE[dir] : nil();
       var v_ = opp(v);
 
       if (pos instanceof Box) {
