@@ -341,7 +341,8 @@
         throw new Error('mickey: locked');
       }
 
-      var boxEl = createBox(mouse.el);
+      var curEl = mouse.el;
+      var boxEl = createBox(curEl);
       if (!boxEl) {
         if (!fallback(dir)) { throw new Error('mickey: cannot move'); }
         return;
@@ -350,7 +351,8 @@
       // find the closest element in the same area as the current focused
       // element
       var curAr = mouse.area();
-      var newEl = findClosest(boxEl, allSelectables(curAr, dir), dir);
+      var selectables = _.without(allSelectables(curAr, dir), curEl);
+      var newEl = findClosest(boxEl, selectables, dir);
       if (newEl) {
         return mouse.focus(newEl, dir);
       }
@@ -363,7 +365,8 @@
       // if no close element has been found, we may have to search for the
       // closest area, or check for a limit element
       var boxAr = createBox(curAr);
-      var newAr = findClosest(boxAr, allAreas(), dir, true);
+      var areas = _.without(allAreas(), curAr);
+      var newAr = findClosest(boxAr, areas, dir, true);
       if (!newAr) {
         if (checkLimit(mouse.el, dir)) {
           mouse.click();
