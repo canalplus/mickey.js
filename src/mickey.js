@@ -27,6 +27,22 @@
     down:  'bottom',
   };
 
+  function keyListener(mouse) {
+    var listener = function(ev) {
+      var k = KEYS[ev.keyCode];
+      if (k === 'click') {
+        mouse.click();
+      } else if (k) {
+        mouse.move(k);
+      }
+    };
+
+    return {
+      bind:   _.bind(document.addEventListener,    document, 'keydown', listener),
+      unbind: _.bind(document.removeEventListener, document, 'keydown', listener)
+    };
+  }
+
   function observer(target, fn) {
     // create an observer instance
     var obs;
@@ -157,7 +173,7 @@
       areaClass:  'hover',
       overlap: 0,
       pos: null,
-      keyListener: keyListener,
+      listener: keyListener,
       $area: '[data-nav-area]',
       $href: null
     });
@@ -168,14 +184,7 @@
       ar: null,
     };
 
-    function keyListener(ev) {
-      var k = KEYS[ev.keyCode];
-      if (k === 'click') {
-        mouse.click();
-      } else if (k) {
-        mouse.move(k);
-      }
-    }
+    var listener = options.listener(mouse);
 
     function dispatchEvent(el, type) {
       if (!el) { return; }
@@ -280,12 +289,12 @@
     var obs;
     function bind() {
       obs = observer(parent, watch);
-      document.addEventListener('keydown', keyListener);
+      listener.bind && listener.bind(parent);
     }
 
     function unbind() {
       obs.disconnect();
-      document.removeEventListener('keydown', keyListener);
+      listener.unbind && listener.unbind();
     }
 
     mouse.focus = function(el, dir, fallback) {
@@ -455,6 +464,7 @@
       mouse.ar = null;
       parent = null;
       locked = false;
+      listener = null;
     };
 
     // focus update on current area
