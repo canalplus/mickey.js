@@ -34,7 +34,7 @@ new Mickey(document.body).init();
 </script>
 ```
 
-See the `examples` directory for examples using Backbone.
+See the `example` directory for examples using Backbone.
 
 ## Installation
 
