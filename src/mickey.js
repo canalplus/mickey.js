@@ -378,9 +378,10 @@
       var newAr = findClosest(boxAr, areas, dir, true);
       if (!newAr) {
         if (checkLimit(mouse.el, dir)) {
-          mouse.click();
+          return mouse.click();
+        } else {
+          return false;
         }
-        return;
       }
 
       var els = allSelectables(newAr);
@@ -391,11 +392,12 @@
         newEl = findClosest(JSON.parse(newAr.dataset.navTrackPos), els);
       }
 
-      if (!newEl) {
-        newEl = _.first(els);
+      // for a data-area containing only one limit element
+      if (els.length === 1 && checkLimit(els[0], dir)) {
+        return mouse.click(_.first(els));
+      } else {
+        return mouse.focus(newEl || _.first(els), dir);
       }
-
-      return mouse.focus(newEl, dir);
     };
 
     mouse.click = function(el) {
@@ -410,6 +412,7 @@
         throw new Error('mickey: cannot click');
       }
       dispatchEvent(el, 'click');
+      return true;
     };
 
     // current mouse area
@@ -480,11 +483,9 @@
 
       bind();
 
-      var el = options.position ?
+      inited = !!mouse.el || mouse.focus(options.position ?
         mouse.hovered() :
-        mouse.defaults();
-
-      inited = mouse.focus(el);
+        mouse.defaults());
       return mouse;
     };
 
