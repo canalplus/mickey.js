@@ -287,15 +287,15 @@
     }
 
     var obs;
-    function bind() {
+    var bind = _.once(function() {
       obs = observer(parent, watch);
       listener.bind && listener.bind(parent);
-    }
+    });
 
-    function unbind() {
-      obs.disconnect();
+    var unbind = _.once(function() {
+      obs && obs.disconnect();
       listener.unbind && listener.unbind();
-    }
+    });
 
     mouse.focus = function(el, dir, fallback) {
       if (_.isString(el)) {
@@ -493,7 +493,7 @@
         return mouse.init();
       }
 
-      if (parent.contains(mouse.el)) {
+      if (!parent || parent.contains(mouse.el)) {
         return;
       }
 
