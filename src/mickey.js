@@ -172,14 +172,14 @@
       hoverClass: 'hover',
       areaClass:  'hover',
       overlap: 0,
-      pos: null,
+      position: null,
       listener: keyListener,
       $area: '[data-nav-area]',
       $href: null
     });
 
     var mouse = {
-      pos: options.pos || nil(),
+      pos: options.position || nil(),
       el: null,
       ar: null,
     };
