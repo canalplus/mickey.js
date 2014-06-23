@@ -18,7 +18,7 @@
 
   document.addEventListener('DOMContentLoaded', function() {
     React.renderComponent(ScrollDown(), document.getElementById('main'));
-    new Mouse(document.getElementById('main')).init();
+    new Mickey(document.getElementById('main')).init();
   });
 
 })();
