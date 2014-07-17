@@ -325,7 +325,9 @@
          (newAr !== memAr || !newLimit || fallback)) {
         mouse.pos = box.center();
         mouse.el = newEl;
-        $rmvClass(memEl, options.hoverClass);
+        if (newAr === memAr || !_.isUndefined(newAr.dataset.navTrack)) {
+          $rmvClass(memEl, options.hoverClass);
+        }
         $addClass(newEl, options.hoverClass, !newLimit);
         dispatchEvent(memEl, 'mouseout');
         dispatchEvent(newEl, 'mouseover');
