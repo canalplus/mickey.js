@@ -464,7 +464,7 @@
     };
 
     // clear mouse
-    mouse.clear = function() {
+    mouse.clear = _.once(function() {
       unbind();
       mouse.pos = nil();
       mouse.el = null;
@@ -472,7 +472,7 @@
       parent = null;
       locked = false;
       listener = null;
-    };
+    });
 
     // focus update on current area
     mouse.update = function() {
