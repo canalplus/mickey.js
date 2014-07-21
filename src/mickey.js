@@ -455,10 +455,12 @@
 
     mouse.block = function() {
       locked = true;
+      $addClass(mouse.el, 'blocked');
     };
 
     mouse.unblock = function() {
       locked = false;
+      $rmvClass(mouse.el, 'blocked');
     };
 
     // clear mouse
