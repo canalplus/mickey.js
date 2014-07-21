@@ -335,6 +335,8 @@
         mouse.click(el);
       }
 
+      if (!inited) { inited = true; }
+
       return true;
     };
 
@@ -346,7 +348,7 @@
     };
 
     mouse.move = function(dir) {
-      if (locked || !inited) {
+      if (locked) {
         throw new Error('mickey: locked');
       }
 
@@ -483,9 +485,10 @@
 
       bind();
 
-      inited = !!mouse.el || mouse.focus(options.position ?
+      mouse.focus(options.position ?
         mouse.hovered() :
         mouse.defaults());
+
       return mouse;
     };
 
