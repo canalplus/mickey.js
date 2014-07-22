@@ -171,6 +171,7 @@
     options = _.defaults(options || {}, {
       hoverClass: 'hover',
       areaClass:  'hover',
+      trackClass: 'tracked',
       overlap: 0,
       position: null,
       listener: keyListener,
@@ -201,6 +202,10 @@
 
     function isLimit(el) {
       return !!el && !_.isUndefined(el.dataset.navLimit);
+    }
+
+    function isTracked(el) {
+      return !!el && !_.isUndefined(el.dataset.navTrack);
     }
 
     function checkLimit(el, dir) {
@@ -313,9 +318,11 @@
       var newAr = mouse.area(newEl);
       var memEl = mouse.el;
       var memAr = mouse.ar;
-      var newLimit = isLimit(newEl);
 
-      if (newAr !== memAr) {
+      var newLimit  = isLimit(newEl);
+      var shiftArea = newAr !== memAr;
+
+      if (shiftArea) {
         mouse.ar = newAr;
         $rmvClass(memAr, options.areaClass);
         $addClass(newAr, options.areaClass);
@@ -325,7 +332,9 @@
          (newAr !== memAr || !newLimit || fallback)) {
         mouse.pos = box.center();
         mouse.el = newEl;
-        $rmvClass(memEl, options.hoverClass, (newAr === memAr || !_.isUndefined(newAr.dataset.navTrack)));
+        $rmvClass(memEl, options.hoverClass);
+        $addClass(memEl, options.trackClass, shiftArea && isTracked(memAr));
+        $rmvClass(newEl, options.trackClass);
         $addClass(newEl, options.hoverClass, !newLimit);
         dispatchEvent(memEl, 'mouseout');
         dispatchEvent(newEl, 'mouseover');
@@ -386,20 +395,22 @@
         }
       }
 
+      // for a data-area containing only one limit element
       var els = allSelectables(newAr);
-      if (!_.isUndefined(curAr.dataset.navTrack)) {
-        curAr.dataset.navTrackPos = JSON.stringify(mouse.pos);
-      }
-      if (!_.isUndefined(newAr.dataset.navTrackPos)) {
-        newEl = findClosest(JSON.parse(newAr.dataset.navTrackPos), els);
+      if (els.length === 1 && checkLimit(els[0], dir)) {
+        return mouse.click(els[0]);
       }
 
-      // for a data-area containing only one limit element
-      if (els.length === 1 && checkLimit(els[0], dir)) {
-        return mouse.click(_.first(els));
-      } else {
-        return mouse.focus(newEl || _.first(els), dir);
+      if (isTracked(curAr)) {
+        curAr.dataset.navTrackPos = JSON.stringify(mouse.pos);
       }
+      if (isTracked(newAr)) {
+        var trackPos = newAr.dataset.navTrackPos;
+        var trackElt = $first(newAr, '.' + options.trackClass);
+        newEl = trackElt || (trackPos && findClosest(JSON.parse(trackPos), els));
+      }
+
+      return mouse.focus(newEl || els[0], dir);
     };
 
     mouse.click = function(el) {
