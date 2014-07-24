@@ -27,6 +27,13 @@
     down:  'bottom',
   };
 
+  var DIRS = {
+    left:  'horizontal',
+    right: 'horizontal',
+    up:    'vertical',
+    down:  'vertical'
+  };
+
   function keyListener(mouse) {
     var listener = function(ev) {
       var k = KEYS[ev.keyCode];
@@ -103,8 +110,12 @@
     return a.x * b.x + a.y * b.y;
   }
 
-  function reflect(a, c) {
+  function pointReflect(a, c) {
     return { x: 2 * c.x - a.x, y: 2 * c.y - a.y };
+  }
+
+  function axisReflect(a, c, dir) {
+    return { x: a.x + 2 * (c.x - a.x) * Math.abs(dir.x), y: a.y + 2 * (c.y - a.y) * Math.abs(dir.y) };
   }
 
   // project a over b where b has norm 1
@@ -206,6 +217,12 @@
 
     function isTracked(el) {
       return !!el && !_.isUndefined(el.dataset.navTrack);
+    }
+
+    function checkCircular(el, dir) {
+      if (!el || _.isUndefined(el.dataset.navCircular)) { return false; }
+      var circular = el.dataset.navCircular;
+      return circular === '' || DIRS[dir] === circular;
     }
 
     function checkLimit(el, dir) {
@@ -382,6 +399,10 @@
         return;
       }
 
+      if (checkCircular(curAr, dir)) {
+        return mouse.focus(mouse.circular(dir));
+      }
+
       // if no close element has been found, we may have to search for the
       // closest area, or check for a limit element
       var boxAr = createBox(curAr);
@@ -460,8 +481,15 @@
       return findHovered(mouse.pos, els);
     };
 
-    mouse.circular = function() {
-      return findClosest(reflect(mouse.pos, createBox(mouse.ar).center()), allSelectables(mouse.ar));
+    mouse.circular = function(dir) {
+      var reflect;
+      var center = createBox(mouse.ar).center();
+      if (dir) {
+        reflect = axisReflect(createBox(mouse.el).bound(BASE[dir]), center, BASE[dir]);
+      } else {
+        reflect = pointReflect(mouse.pos, center);
+      }
+      return findClosest(reflect, allSelectables(mouse.ar), dir);
     };
 
     mouse.block = function() {
