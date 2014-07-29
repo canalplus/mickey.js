@@ -261,8 +261,11 @@
         };
       });
 
-      res = _.first(_.sortBy(res, ['proj', 'dist']));
-      return res && res.el;
+      res = _.sortBy(res, function(x) { return x.proj; });
+      if (res.length > 1 && res[0].proj === res[1].proj) {
+        res = _.sortBy(res, function(x) { return x.dist; });
+      }
+      return res[0] && res[0].el;
     }
 
     // Finds and returns the element that contains the given
