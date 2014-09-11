@@ -1,0 +1,27 @@
+{
+  "name": "mickey.js",
+  "version": "0.0.0",
+  "description": "Your ally for web applications over Remote Controls",
+  "keywords": [
+    "remote control",
+    "rc",
+    "mouse",
+    "stb",
+    "embedded"
+  ],
+  "main": "./src/mickey.js",
+  "browser": "./dist/mickey.js",
+  "devDependencies": {
+    "webpack": "^1.4.0-beta5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/canalplus/mickey.js.git"
+  },
+  "author": "Pierre Guilleminot <pierre.guilleminot@canal-plus.com>",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/canalplus/mickey.js/issues"
+  },
+  "homepage": "https://github.com/canalplus/mickey.js"
+}

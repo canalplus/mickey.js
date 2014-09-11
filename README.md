@@ -49,3 +49,10 @@ bower install --save mickey.js
 ```html
 <script src="bower_components/mickey.js/src/mickey.js"></script>
 ```
+
+## Build
+
+```sh
+make clean
+make
+```
