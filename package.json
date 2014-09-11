@@ -19,7 +19,7 @@
     "url": "https://github.com/canalplus/mickey.js.git"
   },
   "author": "Pierre Guilleminot <pierre.guilleminot@canal-plus.com>",
-  "license": "BSD",
+  "license": "Apache License v2.0",
   "bugs": {
     "url": "https://github.com/canalplus/mickey.js/issues"
   },
