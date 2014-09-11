@@ -21,7 +21,10 @@
     "node_modules",
     "bower_components",
     "test",
-    "tests"
+    "tests",
+    "webpack.config.js",
+    "Makefile",
+    "package.json"
   ],
   "dependencies": {
     "lodash": "~2.4.1"
