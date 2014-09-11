@@ -1,13 +1,17 @@
 <html>
   <head>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/react/0.10.0/react.js"></script>
-    <script src="../../dist/mickey.js"></script>
-    <script src="app.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/react/0.11.1/react-with-addons.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/react/0.11.1/JSXTransformer.js"></script>
+    <script src="/dist/mickey.js"></script>
+    <script type="text/jsx?harmony=true" src="/example/react/app.js"></script>
     <style>
     .item.hover, .item:hover {
       background: hsl(0, 0%, 30%);
       color: white;
+    }
+    .item.selected {
+      color: red;
     }
     </style>
   </head>
