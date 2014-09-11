@@ -6,7 +6,7 @@
     "Pierre Guilleminot <pierre.guilleminot@canal-plus.com>"
   ],
   "description": "Your ally for web applications over Remote Controls",
-  "main": "src/mickey.js",
+  "main": "dist/mickey.js",
   "keywords": [
     "remote control",
     "rc",
