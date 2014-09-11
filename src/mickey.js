@@ -198,7 +198,7 @@ function Mickey(parent, options) {
 
   var obs;
   var bind = _.once(() => {
-    obs = MutationObserver(parent, watch);
+    obs = DOMObserver(parent, watch);
     if (listener.bind) listener.bind(parent);
   });
 
