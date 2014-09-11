@@ -1,6 +1,6 @@
 
 // creates an observer instance
-module.exports = function observer(target, fn) {
+module.exports = function DOMObserver(target, fn) {
   var obs;
   if (window.MutationObserver != null) {
     obs = new MutationObserver(fn);
@@ -8,7 +8,9 @@ module.exports = function observer(target, fn) {
   } else {
     fn = _.debounce(fn, 0);
     target.addEventListener('DOMSubtreeModified', fn);
-    obs = { disconnect: function() { target.removeEventListener('DOMSubtreeModified', fn); } };
+    obs = {
+      disconnect() { target.removeEventListener('DOMSubtreeModified', fn); }
+    };
   }
   return obs;
 };

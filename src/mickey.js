@@ -1,4 +1,4 @@
-var Observer = require("./observer");
+var DOMObserver = require("./dom-observer");
 var { Box, createBox } = require("./box");
 var { $first, $find, $rmvClass, $addClass } = require("./dom");
 var {
@@ -198,7 +198,7 @@ function Mickey(parent, options) {
 
   var obs;
   var bind = _.once(() => {
-    obs = Observer(parent, watch);
+    obs = MutationObserver(parent, watch);
     if (listener.bind) listener.bind(parent);
   });
 
