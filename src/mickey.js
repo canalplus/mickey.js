@@ -239,11 +239,12 @@ function Mickey(parent, options) {
       mouse.el = newEl;
       $rmvClass(memEl, options.hoverClass);
       $addClass(memEl, options.trackClass, shiftArea && isTracked(memAr));
-      $rmvClass(newEl, options.trackClass);
-      $addClass(newEl, options.hoverClass, !newLimit);
       dispatchEvent(memEl, 'mouseout');
       dispatchEvent(newEl, 'mouseover');
     }
+
+    $rmvClass(newEl, options.trackClass);
+    $addClass(newEl, options.hoverClass, !newLimit);
 
     if (newLimit && checkLimit(newEl, dir)) {
       mouse.click(el);
