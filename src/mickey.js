@@ -79,6 +79,7 @@ function Mickey(parent, options) {
     overlap: 0,
     position: null,
     listener: keyListener,
+    observer: DOMObserver,
     $area: '[data-nav-area]',
     $href: null
   });
@@ -198,7 +199,7 @@ function Mickey(parent, options) {
 
   var obs;
   var bind = _.once(() => {
-    obs = DOMObserver(parent, watch);
+    obs = options.observer(parent, watch);
     if (listener.bind) listener.bind(parent);
   });
 
