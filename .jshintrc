@@ -1,7 +1,7 @@
 {
   "browser": true,
-  "camelcase": true,
-  "eqeqeq": true,
+  "laxbreak": true,
+  "eqnull": true,
   "noarg": true,
   "trailing": true,
   "undef": true,

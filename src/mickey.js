@@ -46,7 +46,7 @@ function keyListener(mouse) {
 function observer(target, fn) {
   // create an observer instance
   var obs;
-  if (!_.isUndefined(window.MutationObserver)) {
+  if (window.MutationObserver != null) {
     obs = new MutationObserver(fn);
     obs.observe(target, { attributes: true, childList: true, characterData: true, subtree: true });
   } else {
@@ -119,7 +119,7 @@ function proj(a, b) {
 
 function dataSorter(name, ord) {
   return function(el) {
-    return _.isUndefined(el.dataset[name]) ? 0 : ord;
+    return el.dataset[name] == null ? 0 : ord;
   };
 }
 
@@ -193,7 +193,7 @@ function Mickey(parent, options) {
   var listener = options.listener(mouse);
 
   function dispatchEvent(el, type) {
-    if (!el) { return; }
+    if (!el) return;
     var ev = document.createEvent('MouseEvents');
     var x = mouse.pos.x;
     var y = mouse.pos.y;
@@ -202,19 +202,19 @@ function Mickey(parent, options) {
   }
 
   function isArea(el) {
-    return !!el && (!_.isUndefined(el.dataset.navArea) || el === parent);
+    return !!el && (el.dataset.navArea != null || el === parent);
   }
 
   function isLimit(el) {
-    return !!el && !_.isUndefined(el.dataset.navLimit);
+    return !!el && el.dataset.navLimit != null;
   }
 
   function isTracked(el) {
-    return !!el && !_.isUndefined(el.dataset.navTrack);
+    return !!el && el.dataset.navTrack != null;
   }
 
   function checkCircular(el, dir) {
-    if (!el || _.isUndefined(el.dataset.navCircular)) { return false; }
+    if (!el || el.dataset.navCircular == null) return false;
     var circular = el.dataset.navCircular;
     return circular === '' || DIRS[dir] === circular;
   }
@@ -224,7 +224,7 @@ function Mickey(parent, options) {
   }
 
   function isSelected(el) {
-    return !!el && !_.isUndefined(el.dataset.navSelected);
+    return !!el && el.dataset.navSelected != null;
   }
 
   // Finds and returns the closest element from a given vector
@@ -321,12 +321,11 @@ function Mickey(parent, options) {
       el = parent.querySelector(el);
     }
 
-    if (isArea(el)) {
+    if (isArea(el))
       return mouse.focus(mouse.defaults(el));
-    }
 
     var box = createBox(el);
-    if (!box) { return false; }
+    if (!box) return false;
 
     var newEl = el;
     var newAr = mouse.area(newEl);
@@ -378,7 +377,7 @@ function Mickey(parent, options) {
     var curEl = mouse.el;
     var boxEl = createBox(curEl);
     if (!boxEl) {
-      if (!fallback(dir)) { throw new Error('mickey: cannot move'); }
+      if (!fallback(dir)) throw new Error('mickey: cannot move');
       return;
     }
 
@@ -387,18 +386,15 @@ function Mickey(parent, options) {
     var curAr = mouse.area();
     var selectables = _.without(allSelectables(curAr, dir), curEl);
     var newEl = findClosest(boxEl, selectables, dir);
-    if (newEl) {
+    if (newEl)
       return mouse.focus(newEl, dir);
-    }
 
     var zidx = +curAr.dataset.navZIndex;
-    if (zidx > 0) {
+    if (zidx > 0)
       return;
-    }
 
-    if (checkCircular(curAr, dir)) {
+    if (checkCircular(curAr, dir))
       return mouse.focus(mouse.circular(dir));
-    }
 
     // if no close element has been found, we may have to search for the
     // closest area, or check for a limit element
@@ -406,18 +402,16 @@ function Mickey(parent, options) {
     var areas = _.without(allAreas(), curAr);
     var newAr = findClosest(boxAr, areas, dir, true);
     if (!newAr) {
-      if (checkLimit(mouse.el, dir)) {
+      if (checkLimit(mouse.el, dir))
         return mouse.click();
-      } else {
+      else
         return false;
-      }
     }
 
     // for a data-area containing only one limit element
     var els = allSelectables(newAr);
-    if (els.length === 1 && checkLimit(els[0], dir)) {
+    if (els.length === 1 && checkLimit(els[0], dir))
       return mouse.click(els[0]);
-    }
 
     if (isTracked(curAr)) {
       curAr.dataset.navTrackPos = JSON.stringify(mouse.pos);
@@ -432,16 +426,13 @@ function Mickey(parent, options) {
   };
 
   mouse.click = function(el) {
-    if (locked || !inited) {
+    if (locked || !inited)
       throw new Error('mickey: locked');
-    }
     el = el || mouse.el;
-    if (!parent.contains(el)) {
+    if (!parent.contains(el))
       throw new Error('mickey: cannot click on non visible element');
-    }
-    if (!el && !fallback()) {
+    if (!el && !fallback())
       throw new Error('mickey: cannot click');
-    }
     dispatchEvent(el, 'click');
     return true;
   };
@@ -451,7 +442,7 @@ function Mickey(parent, options) {
     el = el || mouse.el;
     while (el && el !== parent) {
       el = el.parentNode;
-      if (isArea(el)) { return el; }
+      if (isArea(el)) return el;
     }
     return parent;
   };
@@ -531,13 +522,11 @@ function Mickey(parent, options) {
   };
 
   var watch = function() {
-    if (!inited) {
+    if (!inited)
       return mouse.init();
-    }
 
-    if (!parent || parent.contains(mouse.el)) {
+    if (!parent || parent.contains(mouse.el))
       return;
-    }
 
     // TODO: handle mouse.ar disapearance ?
     var el, ar = mouse.ar;
