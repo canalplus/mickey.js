@@ -6,5 +6,13 @@ module.exports = {
   output: {
     library: "Mickey",
     libraryTarget: "umd",
-  }
+  },
+  module: {
+    loaders: [
+      { test: /\.js$/, exclude: [/node_modules\/.*/], loader: "webpack-traceur" },
+    ]
+  },
+  plugins: [
+    new webpack.optimize.OccurrenceOrderPlugin()
+  ],
 };

@@ -1,3 +1,17 @@
+var Observer = require("./observer");
+var { Box, createBox } = require("./box");
+var { $first, $find, $rmvClass, $addClass } = require("./dom");
+var {
+  dot,
+  vec,
+  opp,
+  nil,
+  dist1,
+  distp,
+  axisReflect,
+  pointReflect
+} = require("./math");
+
 var BASE = {
   left:  { x: -1, y: 0 },
   up:    { x: 0,  y: -1 },
@@ -28,7 +42,7 @@ var DIRS = {
 };
 
 function keyListener(mouse) {
-  var listener = function(ev) {
+  var listener = (ev) => {
     var k = KEYS[ev.keyCode];
     if (k === 'click') {
       mouse.click();
@@ -43,131 +57,17 @@ function keyListener(mouse) {
   };
 }
 
-function observer(target, fn) {
-  // create an observer instance
-  var obs;
-  if (window.MutationObserver != null) {
-    obs = new MutationObserver(fn);
-    obs.observe(target, { attributes: true, childList: true, characterData: true, subtree: true });
-  } else {
-    fn = _.debounce(fn, 0);
-    target.addEventListener('DOMSubtreeModified', fn);
-    obs = { disconnect: function() { target.removeEventListener('DOMSubtreeModified', fn); } };
-  }
-  return obs;
-}
-
-function $first(el, selector) {
-  return el.querySelector(selector);
-}
-
-function $find(el, selector) {
-  return _.toArray(el.querySelectorAll(selector));
-}
-
-function $addClass(el, cl, add) {
-  if (!el || add === false) { return; }
-  el.classList.add(cl);
-}
-
-function $rmvClass(el, cl, rem) {
-  if (!el || rem === false) { return; }
-  el.classList.remove(cl);
-}
-
-function nil() {
-  return { x: 0, y: 0 };
-}
-
-function vec(a, b) {
-  return { x: b.x - a.x, y: b.y - a.y };
-}
-
-function dist1(a, b) {
-  return norm1(vec(a, b));
-}
-
-function distp(a, b, dir) {
-  return norm1(proj(vec(a, b), dir));
-}
-
-function norm1(a) {
-  return Math.abs(a.x) + Math.abs(a.y);
-}
-
-function opp(a) {
-  return { x: -a.x, y: -a.y };
-}
-
-function dot(a, b) {
-  return a.x * b.x + a.y * b.y;
-}
-
-function pointReflect(a, c) {
-  return { x: 2 * c.x - a.x, y: 2 * c.y - a.y };
-}
-
-function axisReflect(a, c, dir) {
-  return { x: a.x + 2 * (c.x - a.x) * Math.abs(dir.x), y: a.y + 2 * (c.y - a.y) * Math.abs(dir.y) };
-}
-
-// project a over b where b has norm 1
-function proj(a, b) {
-  var d = dot(a, b);
-  return { x: d * b.x, y: d * b.y };
-}
-
 function dataSorter(name, ord) {
-  return function(el) {
-    return el.dataset[name] == null ? 0 : ord;
-  };
+  return el => el.dataset[name] == null ? 0 : ord;
 }
 
 var limitLast     = dataSorter('navLimit', 1);
 var selectedFirst = dataSorter('navSelected', -1);
 
-function createBox(el) {
-  if (!el) { return; }
-  var r = el.getBoundingClientRect();
-  if (r.height > 0 || r.width > 0) {
-    return new Box(el, r);
-  }
-}
-
-function Box(el, r) {
-  this.el = el;
-  this._r = r;
-}
-
-Box.prototype.contains = function(pos) {
-  var c = this.center();
-  var v = vec(c, this.bound(BASE.down));
-  var h = vec(c, this.bound(BASE.right));
-  var x = vec(c, pos);
-  return (
-    2 * Math.abs(dot(v, x)) <= this._r.height &&
-    2 * Math.abs(dot(h, x)) <= this._r.width
-  );
-};
-
-Box.prototype.center = function() {
-  return {
-    x: this._r.left + this._r.width  / 2,
-    y: this._r.top  + this._r.height / 2,
-  };
-};
-
-Box.prototype.bound = function(d) {
-  return {
-    x: this._r.left + this._r.width  * (1 + d.x) / 2,
-    y: this._r.top  + this._r.height * (1 + d.y) / 2,
-  };
-};
 
 function Mickey(parent, options) {
-  if (!parent) {
+  if (!parent)
     throw new Error('mickey: should pass a parent DOM element');
-  }
 
   var locked = false;
   var inited = false;
@@ -237,28 +137,23 @@ function Mickey(parent, options) {
     var v  = dir ? BASE[dir] : nil();
     var v_ = opp(v);
 
-    if (pos instanceof Box) {
+    if (pos instanceof Box)
       pos = pos.bound(v);
-    }
 
-    var halfSpace = function(p) {
-      return dot(vec(pos, p), v) >= -options.overlap;
-    };
+    var halfSpace = p => dot(vec(pos, p), v) >= -options.overlap;
 
-    var res = _.map(_.filter(_.map(els, createBox), function(b) {
-      return b && halfSpace(area ? b.bound(v_) : b.center());
-    }), function(b) {
-      return {
+    var res = _.sortBy(_.map(_.filter(_.map(els, createBox),
+      b => b && halfSpace(area ? b.bound(v_) : b.center())),
+      b => ({
         el:   b.el,
         proj: distp(pos, b.bound(v_), v),
         dist: dist1(pos, b.bound(v_))
-      };
-    });
+      })),
+      x => x.proj);
 
-    res = _.sortBy(res, function(x) { return x.proj; });
-    if (res.length > 1 && res[0].proj === res[1].proj) {
-      res = _.sortBy(res, function(x) { return x.dist; });
-    }
+    if (res.length > 1 && res[0].proj === res[1].proj)
+      res = _.sortBy(res, x => x.dist);
+
     return res[0] && res[0].el;
   }
 
@@ -266,9 +161,7 @@ function Mickey(parent, options) {
   // position from a set of given DOM elements.
   function findHovered(pos, els) {
     var box = createBox(findClosest(pos, els));
-    if (box && box.contains(pos)) {
-      return box.el;
-    }
+    if (box && box.contains(pos, BASE)) return box.el;
   }
 
   // Find all the areas in the DOM.
@@ -291,11 +184,9 @@ function Mickey(parent, options) {
   function allSelectables(el, dir) {
     var els = $find(el, el.dataset.navArea || options.$href);
     var lim = _.some(els, isLimit);
-    if (lim) { els = _.sortBy(els, limitLast); }
+    if (lim) els = _.sortBy(els, limitLast);
     if (lim && dir) {
-      return _.filter(els, function(el) {
-        return !isLimit(el) || checkLimit(el, dir);
-      });
+      return _.filter(els, el => !isLimit(el) || checkLimit(el, dir));
     } else {
       return els;
     }
@@ -306,14 +197,14 @@ function Mickey(parent, options) {
   }
 
   var obs;
-  var bind = _.once(function() {
-    obs = observer(parent, watch);
-    listener.bind && listener.bind(parent);
+  var bind = _.once(() => {
+    obs = Observer(parent, watch);
+    if (listener.bind) listener.bind(parent);
   });
 
-  var unbind = _.once(function() {
+  var unbind = _.once(() => {
     obs && obs.disconnect();
-    listener.unbind && listener.unbind();
+    if (listener.unbind) listener.unbind();
   });
 
   mouse.focus = function(el, dir, fallback) {
@@ -357,7 +248,7 @@ function Mickey(parent, options) {
       mouse.click(el);
     }
 
-    if (!inited) { inited = true; }
+    if (!inited) inited = true;
 
     return true;
   };
@@ -370,9 +261,8 @@ function Mickey(parent, options) {
   };
 
   mouse.move = function(dir) {
-    if (locked) {
+    if (locked)
       throw new Error('mickey: locked');
-    }
 
     var curEl = mouse.el;
     var boxEl = createBox(curEl);
@@ -416,6 +306,7 @@ function Mickey(parent, options) {
     if (isTracked(curAr)) {
       curAr.dataset.navTrackPos = JSON.stringify(mouse.pos);
     }
+
     if (isTracked(newAr)) {
       var trackPos = newAr.dataset.navTrackPos;
       var trackElt = $first(newAr, '.' + options.trackClass);
@@ -426,13 +317,10 @@ function Mickey(parent, options) {
   };
 
   mouse.click = function(el) {
-    if (locked || !inited)
-      throw new Error('mickey: locked');
+    if (locked || !inited) throw new Error('mickey: locked');
     el = el || mouse.el;
-    if (!parent.contains(el))
-      throw new Error('mickey: cannot click on non visible element');
-    if (!el && !fallback())
-      throw new Error('mickey: cannot click');
+    if (!parent.contains(el, BASE)) throw new Error('mickey: cannot click on non visible element');
+    if (!el && !fallback())         throw new Error('mickey: cannot click');
     dispatchEvent(el, 'click');
     return true;
   };
@@ -457,7 +345,7 @@ function Mickey(parent, options) {
   };
 
   mouse.defaults = function(ar) {
-    return _.first(allSelectables(ar || defaultArea()));
+    return (allSelectables(ar || defaultArea()))[0];
   };
 
   mouse.defaultsInArea = function() {
@@ -491,7 +379,7 @@ function Mickey(parent, options) {
   };
 
   // clear mouse
-  mouse.clear = _.once(function() {
+  mouse.clear = _.once(() => {
     unbind();
     mouse.pos = nil();
     mouse.el = null;
@@ -525,7 +413,7 @@ function Mickey(parent, options) {
     if (!inited)
       return mouse.init();
 
-    if (!parent || parent.contains(mouse.el))
+    if (!parent || parent.contains(mouse.el, BASE))
       return;
 
     // TODO: handle mouse.ar disapearance ?
