@@ -40,14 +40,14 @@ See the `example` directory for examples using Backbone.
 
 The only dependy of mickey.js is [lodash](http://lodash.com/) or [underscore.js](http://underscorejs.org/).
 
-You can simply download the `src/mickey.js` file, or use bower if you prefer.
+You can simply download the `dist/mickey.js` file, or use bower if you prefer.
 
 ```shell
 bower install --save mickey.js
 ```
 
 ```html
-<script src="bower_components/mickey.js/src/mickey.js"></script>
+<script src="bower_components/mickey.js/dist/mickey.js"></script>
 ```
 
 ## Build
