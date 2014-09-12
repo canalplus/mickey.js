@@ -55,11 +55,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var Observer = __webpack_require__(4);
+	var DOMObserver = __webpack_require__(3);
 	var $__0 = __webpack_require__(2),
 	    Box = $__0.Box,
 	    createBox = $__0.createBox;
-	var $__0 = __webpack_require__(3),
+	var $__0 = __webpack_require__(4),
 	    $first = $__0.$first,
 	    $find = $__0.$find,
 	    $rmvClass = $__0.$rmvClass,
@@ -143,11 +143,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    overlap: 0,
 	    position: null,
 	    listener: keyListener,
+	    observer: DOMObserver,
 	    $area: '[data-nav-area]',
 	    $href: null
 	  });
 	  var mouse = {
-	    version: '1.0.0',
+	    version: '1.0.1',
 	    pos: options.position || nil(),
 	    el: null,
 	    ar: null
@@ -242,7 +243,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	  var obs;
 	  var bind = _.once((function() {
-	    obs = Observer(parent, watch);
+	    obs = options.observer(parent, watch);
 	    if (listener.bind)
 	      listener.bind(parent);
 	  }));
@@ -276,11 +277,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      mouse.el = newEl;
 	      $rmvClass(memEl, options.hoverClass);
 	      $addClass(memEl, options.trackClass, shiftArea && isTracked(memAr));
-	      $rmvClass(newEl, options.trackClass);
-	      $addClass(newEl, options.hoverClass, !newLimit);
 	      dispatchEvent(memEl, 'mouseout');
 	      dispatchEvent(newEl, 'mouseover');
 	    }
+	    $rmvClass(newEl, options.trackClass);
+	    $addClass(newEl, options.hoverClass, !newLimit);
 	    if (newLimit && checkLimit(newEl, dir)) {
 	      mouse.click(el);
 	    }
@@ -516,9 +517,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    vec = $__0.vec,
 	    dot = $__0.dot;
 	function createBox(el) {
-	  if (!el) {
+	  if (!el)
 	    return;
-	  }
 	  var r = el.getBoundingClientRect();
 	  if (r.height > 0 || r.width > 0) {
 	    return new Box(el, r);
@@ -558,6 +558,32 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	module.exports = function DOMObserver(target, fn) {
+	  var obs;
+	  if (window.MutationObserver != null) {
+	    obs = new MutationObserver(fn);
+	    obs.observe(target, {
+	      attributes: false,
+	      childList: true,
+	      characterData: true,
+	      subtree: true
+	    });
+	  } else {
+	    fn = _.debounce(fn, 0);
+	    target.addEventListener('DOMSubtreeModified', fn);
+	    obs = {disconnect: function() {
+	        target.removeEventListener('DOMSubtreeModified', fn);
+	      }};
+	  }
+	  return obs;
+	};
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
 	function $first(el, selector) {
 	  return el.querySelector(selector);
 	}
@@ -581,32 +607,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  $find: $find,
 	  $addClass: $addClass,
 	  $rmvClass: $rmvClass
-	};
-
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	module.exports = function observer(target, fn) {
-	  var obs;
-	  if (window.MutationObserver != null) {
-	    obs = new MutationObserver(fn);
-	    obs.observe(target, {
-	      attributes: true,
-	      childList: true,
-	      characterData: true,
-	      subtree: true
-	    });
-	  } else {
-	    fn = _.debounce(fn, 0);
-	    target.addEventListener('DOMSubtreeModified', fn);
-	    obs = {disconnect: function() {
-	        target.removeEventListener('DOMSubtreeModified', fn);
-	      }};
-	  }
-	  return obs;
 	};
 
 
