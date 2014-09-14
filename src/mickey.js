@@ -41,6 +41,32 @@ var DIRS = {
   down:  'vertical'
 };
 
+function camelize(str) {
+  return str.replace(/-(.)/g, (__, g) => g.toUpperCase());
+}
+
+function prefixed(str) {
+  return __PREFIX__
+    ? `${__PREFIX__}-${str}`
+    : str;
+}
+
+// prefixed and camelized dataset keys
+var $ATTRSELECTED = "data-" + prefixed('selected');
+var $ATTRAREA     = "data-" + prefixed('area');
+var $ATTRLIMIT    = "data-" + prefixed('limit');
+var $ATTRTRACK    = "data-" + prefixed('track');
+var $ATTRCIRCULAR = "data-" + prefixed('circular');
+
+var $SELECTED  = camelize(prefixed('selected'));
+var $AREA      = camelize(prefixed('area'));
+var $LIMIT     = camelize(prefixed('limit'));
+var $TRACK     = camelize(prefixed('track'));
+var $CIRCULAR  = camelize(prefixed('circular'));
+var $Z_INDEX   = camelize(prefixed('z-index'));
+var $TRACK_POS = camelize(prefixed('track-pos'));
+var $POLICY    = camelize(prefixed('policy'));
+
 function keyListener(mouse) {
   var listener = (ev) => {
     var k = KEYS[ev.keyCode];
@@ -58,11 +84,11 @@ function keyListener(mouse) {
 }
 
 function dataSorter(name, ord) {
-  return el => el.hasAttribute("data-" + name) ? ord : 0;
+  return el => el.hasAttribute(name) ? ord : 0;
 }
 
-var limitLast = dataSorter('navLimit', 1);
-var selectedFirst = dataSorter('navSelected', -1);
+var limitLast = dataSorter($ATTRLIMIT, 1);
+var selectedFirst = dataSorter($ATTRSELECTED, -1);
 
 function dispatchEvent(el, {x, y}, type) {
   if (!el) return;
@@ -72,29 +98,29 @@ function dispatchEvent(el, {x, y}, type) {
 }
 
 function isArea(el, root) {
-  return !!el && (el.dataset.hasAttribute("data-nav-area") || el === root);
+  return !!el && (el.hasAttribute($ATTRAREA) || el === root);
 }
 
 function isLimit(el) {
-  return !!el && el.dataset.hasAttribute("data-nav-limit");
+  return !!el && el.hasAttribute($ATTRLIMIT);
 }
 
 function isTracked(el) {
-  return !!el && el.dataset.hasAttribute("data-nav-track");
+  return !!el && el.hasAttribute($ATTRTRACK);
 }
 
 function checkCircular(el, dir) {
-  if (!el || !el.hasAttribute("data-nav-circular")) return false;
+  if (!el || !el.hasAttribute($ATTRCIRCULAR)) return false;
   var circular = el.dataset.navCircular;
   return circular === '' || DIRS[dir] === circular;
 }
 
 function checkLimit(el, dir) {
-  return !!dir && isLimit(el) && el.dataset.navLimit === LIMITS[dir];
+  return !!dir && isLimit(el) && el.dataset[$LIMIT] === LIMITS[dir];
 }
 
 function isSelected(el) {
-  return !!el && el.dataset.hasAttribute("data-nav-selected");
+  return !!el && el.hasAttribute($ATTRSELECTED);
 }
 
 // Find all the areas in the DOM.
@@ -115,7 +141,7 @@ function defaultArea(root, selector) {
 
 // Find all selectable elements inside the given DOM element.
 function allSelectables(el, selector, dir) {
-  var els = $find(el, el.dataset.navArea);
+  var els = $find(el, el.dataset[$AREA]);
   var lim = _.some(els, isLimit);
   if (lim) els = _.sortBy(els, limitLast);
   if (lim && dir) {
@@ -140,7 +166,7 @@ function Mickey(root, options = {}) {
     overlap: 0,
     listener: keyListener,
     observer: DOMObserver,
-    $area: '[data-nav-area]',
+    $area: `[data-${prefixed('area')}]`,
     $href: null,
   });
 
@@ -275,7 +301,7 @@ function Mickey(root, options = {}) {
       if (newEl)
         return mouse.focus(newEl, dir);
 
-      var zidx = +curAr.dataset.navZIndex;
+      var zidx = +curAr.dataset[$Z_INDEX];
       if (zidx > 0) return;
 
       if (checkCircular(curAr, dir))
@@ -298,10 +324,10 @@ function Mickey(root, options = {}) {
         return mouse.click(els[0]);
 
       if (isTracked(curAr))
-        curAr.dataset.navTrackPos = JSON.stringify(mouse.pos);
+        curAr.dataset[$TRACK_POS] = JSON.stringify(mouse.pos);
 
       if (isTracked(newAr)) {
-        var trackPos = newAr.dataset.navTrackPos;
+        var trackPos = newAr.dataset[$TRACK_POS];
         var trackElt = $first(newAr, '.' + trackClass);
         newEl = trackElt || (trackPos && findClosest(JSON.parse(trackPos), els));
       } else {
@@ -422,7 +448,7 @@ function Mickey(root, options = {}) {
 
     // TODO: handle mouse.ar disapearance ?
     var el, ar = mouse.ar;
-    switch(ar.dataset.navPolicy) {
+    switch(ar.dataset[$POLICY]) {
     default:
     case 'closest':  el = mouse.closestInArea(); break;
     case 'defaults': el = mouse.defaultsInArea(); break;

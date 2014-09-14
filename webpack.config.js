@@ -1,5 +1,7 @@
 /* jshint node:true */
 var webpack = require("webpack");
+var prefix = process.env.MICKEY_PREFIX;
+if (prefix == null) prefix = "nav";
 
 module.exports = {
   entry: "./src/mickey.js",
@@ -14,6 +16,7 @@ module.exports = {
   },
   plugins: [
     new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.DefinePlugin({ "__DEV__": (process.env.MICKEY_ENV === "debug") })
+    new webpack.DefinePlugin({ "__DEV__": (process.env.MICKEY_ENV === "debug") }),
+    new webpack.DefinePlugin({ "__PREFIX__": "\"" + prefix + "\"" })
   ],
 };
