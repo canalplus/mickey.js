@@ -13,6 +13,7 @@ module.exports = {
     ]
   },
   plugins: [
-    new webpack.optimize.OccurrenceOrderPlugin()
+    new webpack.optimize.OccurrenceOrderPlugin(),
+    new webpack.DefinePlugin({ "__DEV__": (process.env.MICKEY_ENV === "debug") })
   ],
 };

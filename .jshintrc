@@ -8,5 +8,5 @@
   "undef": true,
   "expr": true,
   "newcap": false,
-  "predef": ["_", "module", "require"]
+  "predef": ["_", "module", "require", "__DEV__"]
 }

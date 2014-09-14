@@ -8,6 +8,8 @@ build: dist/mickey.js
 
 min: dist/mickey.min.js
 
+dev: dist/mickey.dev.js
+
 clean:
 	@rm -f dist/mickey.js
 	@rm -f dist/mickey.min.js
@@ -21,4 +23,7 @@ dist/mickey.js: $(SRC_IDX) $(SRC)
 dist/mickey.min.js: $(SRC_IDX) $(SRC)
 	@$(BUNDLE) -p $< $@
 
-.PHONY: build min clean lint
+dist/mickey.dev.js: $(SRC_IDX) $(SRC)
+	@MICKEY_ENV=debug $(BUNDLE) $< $@
+
+.PHONY: build min dev clean lint
