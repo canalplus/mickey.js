@@ -78,8 +78,8 @@ function keyListener(mouse) {
   };
 
   return {
-    bind:   _.bind(document.addEventListener,    document, 'keydown', listener),
-    unbind: _.bind(document.removeEventListener, document, 'keydown', listener)
+    bind:   () => document.addEventListener('keydown', listener, false),
+    unbind: () => document.removeEventListener('keydown', listener),
   };
 }
 
