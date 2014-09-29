@@ -58,7 +58,7 @@ function keyListener(mouse) {
 }
 
 function dataSorter(name, ord) {
-  return el => el.dataset[name] == null ? 0 : ord;
+  return el => el.hasAttribute("data-" + name) ? ord : 0;
 }
 
 var limitLast     = dataSorter('navLimit', 1);
@@ -103,19 +103,19 @@ function Mickey(parent, options) {
   }
 
   function isArea(el) {
-    return !!el && (el.dataset.navArea != null || el === parent);
+    return !!el && (el.dataset.hasAttribute("data-nav-area") || el === parent);
   }
 
   function isLimit(el) {
-    return !!el && el.dataset.navLimit != null;
+    return !!el && el.dataset.hasAttribute("data-nav-limit");
   }
 
   function isTracked(el) {
-    return !!el && el.dataset.navTrack != null;
+    return !!el && el.dataset.hasAttribute("data-nav-track");
   }
 
   function checkCircular(el, dir) {
-    if (!el || el.dataset.navCircular == null) return false;
+    if (!el || !el.hasAttribute("data-nav-circular")) return false;
     var circular = el.dataset.navCircular;
     return circular === '' || DIRS[dir] === circular;
   }
@@ -125,7 +125,7 @@ function Mickey(parent, options) {
   }
 
   function isSelected(el) {
-    return !!el && el.dataset.navSelected != null;
+    return !!el && el.dataset.hasAttribute("data-nav-selected");
   }
 
   // Finds and returns the closest element from a given vector
