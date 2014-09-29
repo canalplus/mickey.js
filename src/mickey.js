@@ -141,7 +141,7 @@ function defaultArea(root, selector) {
 
 // Find all selectable elements inside the given DOM element.
 function allSelectables(el, selector, dir) {
-  var els = $find(el, el.dataset[$AREA]);
+  var els = $find(el, el.dataset[$AREA] || selector);
   var lim = _.some(els, isLimit);
   if (lim) els = _.sortBy(els, limitLast);
   if (lim && dir) {
