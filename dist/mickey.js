@@ -129,8 +129,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return el.hasAttribute("data-" + name) ? ord : 0;
 	  });
 	}
-	var limitLast = dataSorter('navLimit', 1);
-	var selectedFirst = dataSorter('navSelected', -1);
+	var limitLast = dataSorter('nav-limit', 1);
+	var selectedFirst = dataSorter('nav-selected', -1);
 	function Mickey(parent, options) {
 	  if (!parent)
 	    throw new Error('mickey: should pass a parent DOM element');
@@ -148,7 +148,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    $href: null
 	  });
 	  var mouse = {
-	    version: '1.0.2',
+	    version: '1.0.3',
 	    pos: options.position || nil(),
 	    el: null,
 	    ar: null

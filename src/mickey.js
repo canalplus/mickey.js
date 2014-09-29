@@ -85,7 +85,7 @@ function Mickey(parent, options) {
   });
 
   var mouse = {
-    version: '1.0.2',
+    version: '1.0.3',
     pos: options.position || nil(),
     el: null,
     ar: null,

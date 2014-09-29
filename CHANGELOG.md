@@ -1,3 +1,7 @@
+## v1.0.3 (September 29, 2014)
+
+* Fix data sorter params
+
 ## v1.0.2 (September 29, 2014)
 
 * Fix compat with old Android webviews (dataset.undef === "")
