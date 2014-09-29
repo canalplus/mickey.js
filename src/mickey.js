@@ -61,8 +61,8 @@ function dataSorter(name, ord) {
   return el => el.hasAttribute("data-" + name) ? ord : 0;
 }
 
-var limitLast     = dataSorter('navLimit', 1);
-var selectedFirst = dataSorter('navSelected', -1);
+var limitLast     = dataSorter('nav-limit', 1);
+var selectedFirst = dataSorter('nav-selected', -1);
 
 
 function Mickey(parent, options) {
