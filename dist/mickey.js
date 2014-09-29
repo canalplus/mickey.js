@@ -126,7 +126,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	function dataSorter(name, ord) {
 	  return (function(el) {
-	    return el.dataset[name] == null ? 0 : ord;
+	    return el.hasAttribute("data-" + name) ? ord : 0;
 	  });
 	}
 	var limitLast = dataSorter('navLimit', 1);
@@ -148,7 +148,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    $href: null
 	  });
 	  var mouse = {
-	    version: '1.0.1',
+	    version: '1.0.2',
 	    pos: options.position || nil(),
 	    el: null,
 	    ar: null
@@ -164,16 +164,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    el.dispatchEvent(ev);
 	  }
 	  function isArea(el) {
-	    return !!el && (el.dataset.navArea != null || el === parent);
+	    return !!el && (el.dataset.hasAttribute("data-nav-area") || el === parent);
 	  }
 	  function isLimit(el) {
-	    return !!el && el.dataset.navLimit != null;
+	    return !!el && el.dataset.hasAttribute("data-nav-limit");
 	  }
 	  function isTracked(el) {
-	    return !!el && el.dataset.navTrack != null;
+	    return !!el && el.dataset.hasAttribute("data-nav-track");
 	  }
 	  function checkCircular(el, dir) {
-	    if (!el || el.dataset.navCircular == null)
+	    if (!el || !el.hasAttribute("data-nav-circular"))
 	      return false;
 	    var circular = el.dataset.navCircular;
 	    return circular === '' || DIRS[dir] === circular;
@@ -182,7 +182,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return !!dir && isLimit(el) && el.dataset.navLimit === LIMITS[dir];
 	  }
 	  function isSelected(el) {
-	    return !!el && el.dataset.navSelected != null;
+	    return !!el && el.dataset.hasAttribute("data-nav-selected");
 	  }
 	  function findClosest(pos, els, dir, area) {
 	    var v = dir ? BASE[dir] : nil();
