@@ -58,11 +58,8 @@ var $ATTRLIMIT    = "data-" + prefixed('limit');
 var $ATTRTRACK    = "data-" + prefixed('track');
 var $ATTRCIRCULAR = "data-" + prefixed('circular');
 
-var $SELECTED  = camelize(prefixed('selected'));
 var $AREA      = camelize(prefixed('area'));
 var $LIMIT     = camelize(prefixed('limit'));
-var $TRACK     = camelize(prefixed('track'));
-var $CIRCULAR  = camelize(prefixed('circular'));
 var $Z_INDEX   = camelize(prefixed('z-index'));
 var $TRACK_POS = camelize(prefixed('track-pos'));
 var $POLICY    = camelize(prefixed('policy'));
