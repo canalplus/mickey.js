@@ -103,15 +103,15 @@ function Mickey(parent, options) {
   }
 
   function isArea(el) {
-    return !!el && (el.dataset.hasAttribute("data-nav-area") || el === parent);
+    return !!el && (el.hasAttribute("data-nav-area") || el === parent);
   }
 
   function isLimit(el) {
-    return !!el && el.dataset.hasAttribute("data-nav-limit");
+    return !!el && el.hasAttribute("data-nav-limit");
   }
 
   function isTracked(el) {
-    return !!el && el.dataset.hasAttribute("data-nav-track");
+    return !!el && el.hasAttribute("data-nav-track");
   }
 
   function checkCircular(el, dir) {
@@ -125,7 +125,7 @@ function Mickey(parent, options) {
   }
 
   function isSelected(el) {
-    return !!el && el.dataset.hasAttribute("data-nav-selected");
+    return !!el && el.hasAttribute("data-nav-selected");
   }
 
   // Finds and returns the closest element from a given vector
