@@ -142,6 +142,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    trackClass: 'tracked',
 	    overlap: 0,
 	    position: null,
+	    priority: 'left,top',
 	    listener: keyListener,
 	    observer: DOMObserver,
 	    $area: '[data-nav-area]',
@@ -184,9 +185,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function isSelected(el) {
 	    return !!el && el.hasAttribute("data-nav-selected");
 	  }
+	  function intersectRect(r1, r2, dir) {
+	    if (dir.y !== 0) {
+	      return !(r2.left >= r1.left + r1.width || r2.left + r2.width <= r1.left);
+	    }
+	    if (dir.x !== 0) {
+	      return !(r2.top >= r1.top + r1.height || r2.top + r2.height <= r1.top);
+	    }
+	    return false;
+	  }
 	  function findClosest(pos, els, dir, area) {
 	    var v = dir ? BASE[dir] : nil();
 	    var v_ = opp(v);
+	    var rect = pos._r;
 	    if (pos instanceof Box)
 	      pos = pos.bound(v);
 	    var halfSpace = (function(p) {
@@ -194,19 +205,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	    var res = _.sortBy(_.map(_.filter(_.map(els, createBox), (function(b) {
 	      return b && halfSpace(area ? b.bound(v_) : b.center());
-	    })), (function(b) {
-	      return ({
+	    })), function(b) {
+	      var bound = b.bound(v_);
+	      var item = ({
 	        el: b.el,
 	        proj: distp(pos, b.bound(v_), v),
-	        dist: dist1(pos, b.bound(v_))
+	        dist: dist1(pos, bound),
+	        priority: Infinity
 	      });
-	    })), (function(x) {
-	      return x.proj;
-	    }));
-	    if (res.length > 1 && res[0].proj === res[1].proj)
-	      res = _.sortBy(res, (function(x) {
-	        return x.dist;
+	      if (!rect || !intersectRect(rect, b._r, v)) {
+	        return item;
+	      }
+	      if (v.y !== 0) {
+	        if (_.contains(options.priority, 'left')) {
+	          item.priority = bound.x;
+	        }
+	        if (_.contains(options.priority, 'right')) {
+	          item.priority = -bound.x;
+	        }
+	      }
+	      if (v.x !== 0) {
+	        if (_.contains(options.priority, 'top')) {
+	          item.priority = bound.y;
+	        }
+	        if (_.contains(options.priority, 'bottom')) {
+	          item.priority = -bound.y;
+	        }
+	      }
+	      return item;
+	    }), ['proj', 'priority', 'dist']);
+	    if (res.length > 1 && _.find(res, (function(x) {
+	      return x.priority < Infinity;
+	    }))) {
+	      res = _.filter(res, (function(x) {
+	        return x.priority < Infinity;
 	      }));
+	    }
 	    return res[0] && res[0].el;
 	  }
 	  function findHovered(pos, els) {
@@ -378,7 +412,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var reflect;
 	    var center = createBox(mouse.ar).center();
 	    if (dir) {
-	      reflect = axisReflect(createBox(mouse.el).bound(BASE[dir]), center, BASE[dir]);
+	      reflect = axisReflect(createBox(mouse.el), dir, center);
 	    } else {
 	      reflect = pointReflect(mouse.pos, center);
 	    }
@@ -465,7 +499,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return norm1(proj(vec(a, b), dir));
 	}
 	function norm1(a) {
-	  return Math.abs(a.x) + Math.abs(a.y);
+	  return Math.sqrt(a.x * a.x + a.y * a.y);
 	}
 	function opp(a) {
 	  return {
@@ -482,11 +516,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	    y: 2 * c.y - a.y
 	  };
 	}
-	function axisReflect(a, c, dir) {
-	  return {
-	    x: a.x + 2 * (c.x - a.x) * Math.abs(dir.x),
-	    y: a.y + 2 * (c.y - a.y) * Math.abs(dir.y)
-	  };
+	function axisReflect(box, dir, center) {
+	  var r = _.extend({}, box._r);
+	  switch (dir) {
+	    case 'up':
+	      r.top = r.top + 2 * center.y;
+	      break;
+	    case 'down':
+	      r.top = r.top - 2 * center.y;
+	      break;
+	    case 'left':
+	      r.left = r.left + 2 * center.x;
+	      break;
+	    case 'right':
+	      r.left = r.left - 2 * center.x;
+	      break;
+	    default:
+	      break;
+	  }
+	  box._r = r;
+	  return box;
 	}
 	function proj(a, b) {
 	  var d = dot(a, b);

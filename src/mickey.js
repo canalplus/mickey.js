@@ -78,6 +78,7 @@ function Mickey(parent, options) {
     trackClass: 'tracked',
     overlap: 0,
     position: null,
+    priority: 'left,top',
     listener: keyListener,
     observer: DOMObserver,
     $area: '[data-nav-area]',
@@ -128,6 +129,16 @@ function Mickey(parent, options) {
     return !!el && el.hasAttribute("data-nav-selected");
   }
 
+  function intersectRect(r1, r2, dir) {
+    if (dir.y !== 0) {
+      return !(r2.left >= r1.left + r1.width || r2.left + r2.width <= r1.left);
+    }
+    if (dir.x !== 0) {
+      return !(r2.top >= r1.top + r1.height || r2.top + r2.height <= r1.top);
+    }
+    return false;
+  }
+
   // Finds and returns the closest element from a given vector
   // position or Box to a set of DOM elements.
   //
@@ -137,6 +148,7 @@ function Mickey(parent, options) {
   function findClosest(pos, els, dir, area) {
     var v  = dir ? BASE[dir] : nil();
     var v_ = opp(v);
+    var rect = pos._r;
 
     if (pos instanceof Box)
       pos = pos.bound(v);
@@ -145,15 +157,38 @@ function Mickey(parent, options) {
 
     var res = _.sortBy(_.map(_.filter(_.map(els, createBox),
       b => b && halfSpace(area ? b.bound(v_) : b.center())),
-      b => ({
-        el:   b.el,
-        proj: distp(pos, b.bound(v_), v),
-        dist: dist1(pos, b.bound(v_))
-      })),
-      x => x.proj);
+      function(b) {
+        var bound = b.bound(v_);
+        var item = ({
+          el: b.el,
+          proj: distp(pos, b.bound(v_), v),
+          dist: dist1(pos, bound),
+          priority: Infinity
+        });
+        if (!rect || !intersectRect(rect, b._r, v)) { return item; }
+        if (v.y !== 0) {
+          if (_.contains(options.priority, 'left')) {
+            item.priority = bound.x;
+          }
+          if (_.contains(options.priority, 'right')) {
+            item.priority = -bound.x;
+          }
+        }
+        if (v.x !== 0) {
+          if (_.contains(options.priority, 'top')) {
+            item.priority = bound.y;
+          }
+          if (_.contains(options.priority, 'bottom')) {
+            item.priority = -bound.y;
+          }
+        }
+        return item;
+      }),
+      ['proj', 'priority', 'dist']);
 
-    if (res.length > 1 && res[0].proj === res[1].proj)
-      res = _.sortBy(res, x => x.dist);
+    if (res.length > 1 && _.find(res, x => x.priority < Infinity)) {
+      res = _.filter(res, x => x.priority < Infinity);
+    }
 
     return res[0] && res[0].el;
   }
@@ -363,7 +398,7 @@ function Mickey(parent, options) {
     var reflect;
     var center = createBox(mouse.ar).center();
     if (dir) {
-      reflect = axisReflect(createBox(mouse.el).bound(BASE[dir]), center, BASE[dir]);
+      reflect = axisReflect(createBox(mouse.el), dir, center);
     } else {
       reflect = pointReflect(mouse.pos, center);
     }

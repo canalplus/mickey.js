@@ -15,7 +15,7 @@ function distp(a, b, dir) {
 }
 
 function norm1(a) {
-  return Math.abs(a.x) + Math.abs(a.y);
+  return Math.sqrt(a.x * a.x + a.y * a.y);
 }
 
 function opp(a) {
@@ -30,8 +30,26 @@ function pointReflect(a, c) {
   return { x: 2 * c.x - a.x, y: 2 * c.y - a.y };
 }
 
-function axisReflect(a, c, dir) {
-  return { x: a.x + 2 * (c.x - a.x) * Math.abs(dir.x), y: a.y + 2 * (c.y - a.y) * Math.abs(dir.y) };
+function axisReflect(box, dir, center) {
+  var r = _.extend({}, box._r);
+  switch (dir) {
+  case 'up':
+    r.top = r.top + 2 * center.y;
+    break;
+  case 'down':
+    r.top = r.top - 2 * center.y;
+    break;
+  case 'left':
+    r.left = r.left + 2 * center.x;
+    break;
+  case 'right':
+    r.left = r.left - 2 * center.x;
+    break;
+  default:
+    break;
+  }
+  box._r = r;
+  return box;
 }
 
 // project a over b where b has norm 1
