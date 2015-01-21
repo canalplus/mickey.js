@@ -55,6 +55,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	'use strict';
 	var DOMObserver = __webpack_require__(3);
 	var $__0 = __webpack_require__(2),
 	    Box = $__0.Box,
@@ -124,13 +125,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    unbind: _.bind(document.removeEventListener, document, 'keydown', listener)
 	  };
 	}
-	function dataSorter(name, ord) {
+	function dataSorter(name, ord, prefix) {
 	  return (function(el) {
-	    return el.hasAttribute("data-" + name) ? ord : 0;
+	    return el.hasAttribute(prefix + name) ? ord : 0;
 	  });
 	}
-	var limitLast = dataSorter('nav-limit', 1);
-	var selectedFirst = dataSorter('nav-selected', -1);
 	function Mickey(parent, options) {
 	  if (!parent)
 	    throw new Error('mickey: should pass a parent DOM element');
@@ -145,9 +144,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    priority: 'left,top',
 	    listener: keyListener,
 	    observer: DOMObserver,
+	    prefix: 'data-nav-',
 	    $area: '[data-nav-area]',
 	    $href: null
 	  });
+	  var limitLast = dataSorter('limit', 1, options.prefix);
+	  var selectedFirst = dataSorter('selected', -1, options.prefix);
 	  var mouse = {
 	    version: '1.0.4',
 	    pos: options.position || nil(),
@@ -165,25 +167,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	    el.dispatchEvent(ev);
 	  }
 	  function isArea(el) {
-	    return !!el && (el.hasAttribute("data-nav-area") || el === parent);
+	    return !!el && (el.hasAttribute(options.prefix + 'area') || el === parent);
 	  }
 	  function isLimit(el) {
-	    return !!el && el.hasAttribute("data-nav-limit");
+	    return !!el && el.hasAttribute(options.prefix + 'limit');
 	  }
 	  function isTracked(el) {
-	    return !!el && el.hasAttribute("data-nav-track");
+	    return !!el && el.hasAttribute(options.prefix + 'track');
 	  }
 	  function checkCircular(el, dir) {
-	    if (!el || !el.hasAttribute("data-nav-circular"))
+	    if (!el || !el.hasAttribute(options.prefix + 'circular'))
 	      return false;
-	    var circular = el.dataset.navCircular;
+	    var circular = el.getAttribute(options.prefix + 'circular');
 	    return circular === '' || DIRS[dir] === circular;
 	  }
 	  function checkLimit(el, dir) {
-	    return !!dir && isLimit(el) && el.dataset.navLimit === LIMITS[dir];
+	    return !!dir && isLimit(el) && el.getAttribute(options.prefix + 'limit') === LIMITS[dir];
 	  }
 	  function isSelected(el) {
-	    return !!el && el.hasAttribute("data-nav-selected");
+	    return !!el && el.hasAttribute(options.prefix + 'selected');
 	  }
 	  function intersectRect(r1, r2, dir) {
 	    if (dir.y !== 0) {
@@ -260,7 +262,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return _.first(els);
 	  }
 	  function allSelectables(el, dir) {
-	    var els = $find(el, el.dataset.navArea || options.$href);
+	    var els = $find(el, el.getAttribute(options.prefix + 'area') || options.$href);
 	    var lim = _.some(els, isLimit);
 	    if (lim)
 	      els = _.sortBy(els, limitLast);
@@ -344,7 +346,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var newEl = findClosest(boxEl, selectables, dir);
 	    if (newEl)
 	      return mouse.focus(newEl, dir);
-	    var zidx = +curAr.dataset.navZIndex;
+	    var zidx = +curAr.getAttribute(options.prefix + 'z-index');
 	    if (zidx > 0)
 	      return;
 	    if (checkCircular(curAr, dir))
@@ -362,10 +364,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (els.length === 1 && checkLimit(els[0], dir))
 	      return mouse.click(els[0]);
 	    if (isTracked(curAr)) {
-	      curAr.dataset.navTrackPos = JSON.stringify(mouse.pos);
+	      curAr.setAttribute(options.prefix + 'track-pos', JSON.stringify(mouse.pos));
 	    }
 	    if (isTracked(newAr)) {
-	      var trackPos = newAr.dataset.navTrackPos;
+	      var trackPos = newAr.getAttribute(options.prefix + 'track-pos');
 	      var trackElt = $first(newAr, '.' + options.trackClass);
 	      newEl = trackElt || (trackPos && findClosest(JSON.parse(trackPos), els));
 	    }
@@ -453,7 +455,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return;
 	    var el,
 	        ar = mouse.ar;
-	    switch (ar.dataset.navPolicy) {
+	    switch (ar.getAttribute(options.prefix + 'policy')) {
 	      default:
 	      case 'closest':
 	        el = mouse.closestInArea();
