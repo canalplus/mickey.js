@@ -151,7 +151,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var limitLast = dataSorter('limit', 1, options.prefix);
 	  var selectedFirst = dataSorter('selected', -1, options.prefix);
 	  var mouse = {
-	    version: '1.0.4',
+	    version: '1.0.5',
 	    pos: options.position || nil(),
 	    el: null,
 	    ar: null

@@ -1,3 +1,7 @@
+## v1.0.5 (February 2, 2015)
+
+* Improve close to close navigation
+
 ## v1.0.4 (October 10, 2014)
 
 * Fix hasAttribute used on dataset
