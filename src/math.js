@@ -7,7 +7,7 @@ function vec(a, b) {
 }
 
 function dist1(a, b) {
-  return norm1(vec(a, b));
+  return norm2(vec(a, b));
 }
 
 function distp(a, b, dir) {
@@ -16,6 +16,10 @@ function distp(a, b, dir) {
 
 function norm1(a) {
   return Math.sqrt(a.x * a.x + a.y * a.y);
+}
+
+function norm2(a) {
+  return Math.abs(a.x) + Math.abs(a.y);
 }
 
 function opp(a) {
@@ -31,24 +35,22 @@ function pointReflect(a, c) {
 }
 
 function axisReflect(box, dir, center) {
-  var r = _.extend({}, box._r);
   switch (dir) {
   case 'up':
-    r.top = r.top + 2 * center.y;
+    box._r.top = box._r.top + 2 * center.y;
     break;
   case 'down':
-    r.top = r.top - 2 * center.y;
+    box._r.top = box._r.top - 2 * center.y;
     break;
   case 'left':
-    r.left = r.left + 2 * center.x;
+    box._r.left = box._r.left + 2 * center.x;
     break;
   case 'right':
-    r.left = r.left - 2 * center.x;
+    box._r.left = box._r.left - 2 * center.x;
     break;
   default:
     break;
   }
-  box._r = r;
   return box;
 }
 

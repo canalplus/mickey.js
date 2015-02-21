@@ -1,4 +1,3 @@
-'use strict';
 var DOMObserver = require('./dom-observer');
 var { Box, createBox } = require('./box');
 var { $first, $find, $rmvClass, $addClass } = require('./dom');
@@ -155,9 +154,9 @@ function Mickey(parent, options) {
     if (pos instanceof Box)
       pos = pos.bound(v);
 
-    var halfSpace = p => dot(vec(pos, p), v) >= -options.overlap;
+    var halfSpace = p => dot(vec(pos, p), v) >= 0;
 
-    var res = _.sortBy(_.map(_.filter(_.map(els, createBox),
+    var res = _.sortBy(_.map(_.filter(_.map(els, function(el) { return createBox(el, options.overlap); }),
       b => b && halfSpace(area ? b.bound(v_) : b.center())),
       function(b) {
         var bound = b.bound(v_);
@@ -198,7 +197,7 @@ function Mickey(parent, options) {
   // Finds and returns the element that contains the given
   // position from a set of given DOM elements.
   function findHovered(pos, els) {
-    var box = createBox(findClosest(pos, els));
+    var box = createBox(findClosest(pos, els), options.overlap);
     if (box && box.contains(pos, BASE)) return box.el;
   }
 
@@ -253,7 +252,7 @@ function Mickey(parent, options) {
     if (isArea(el))
       return mouse.focus(mouse.defaults(el));
 
-    var box = createBox(el);
+    var box = createBox(el, options.overlap);
     if (!box) return false;
 
     var newEl = el;
@@ -304,7 +303,7 @@ function Mickey(parent, options) {
       throw new Error('mickey: locked');
 
     var curEl = mouse.el;
-    var boxEl = createBox(curEl);
+    var boxEl = createBox(curEl, options.overlap);
     if (!boxEl) {
       if (!fallback(dir)) throw new Error('mickey: cannot move');
       return;
@@ -327,7 +326,7 @@ function Mickey(parent, options) {
 
     // if no close element has been found, we may have to search for the
     // closest area, or check for a limit element
-    var boxAr = createBox(curAr);
+    var boxAr = createBox(curAr, options.overlap);
     var areas = _.without(allAreas(), curAr);
     var newAr = findClosest(boxAr, areas, dir, true);
     if (!newAr) {
@@ -398,9 +397,9 @@ function Mickey(parent, options) {
 
   mouse.circular = function(dir) {
     var reflect;
-    var center = createBox(mouse.ar).center();
+    var center = createBox(mouse.ar, options.overlap).center();
     if (dir) {
-      reflect = axisReflect(createBox(mouse.el), dir, center);
+      reflect = axisReflect(createBox(mouse.el, options.overlap), dir, center);
     } else {
       reflect = pointReflect(mouse.pos, center);
     }

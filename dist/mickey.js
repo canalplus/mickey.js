@@ -55,7 +55,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	'use strict';
 	var DOMObserver = __webpack_require__(3);
 	var $__0 = __webpack_require__(2),
 	    Box = $__0.Box,
@@ -203,9 +202,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (pos instanceof Box)
 	      pos = pos.bound(v);
 	    var halfSpace = (function(p) {
-	      return dot(vec(pos, p), v) >= -options.overlap;
+	      return dot(vec(pos, p), v) >= 0;
 	    });
-	    var res = _.sortBy(_.map(_.filter(_.map(els, createBox), (function(b) {
+	    var res = _.sortBy(_.map(_.filter(_.map(els, function(el) {
+	      return createBox(el, options.overlap);
+	    }), (function(b) {
 	      return b && halfSpace(area ? b.bound(v_) : b.center());
 	    })), function(b) {
 	      var bound = b.bound(v_);
@@ -246,7 +247,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return res[0] && res[0].el;
 	  }
 	  function findHovered(pos, els) {
-	    var box = createBox(findClosest(pos, els));
+	    var box = createBox(findClosest(pos, els), options.overlap);
 	    if (box && box.contains(pos, BASE))
 	      return box.el;
 	  }
@@ -294,7 +295,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    if (isArea(el))
 	      return mouse.focus(mouse.defaults(el));
-	    var box = createBox(el);
+	    var box = createBox(el, options.overlap);
 	    if (!box)
 	      return false;
 	    var newEl = el;
@@ -335,7 +336,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (locked)
 	      throw new Error('mickey: locked');
 	    var curEl = mouse.el;
-	    var boxEl = createBox(curEl);
+	    var boxEl = createBox(curEl, options.overlap);
 	    if (!boxEl) {
 	      if (!fallback(dir))
 	        throw new Error('mickey: cannot move');
@@ -351,7 +352,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return;
 	    if (checkCircular(curAr, dir))
 	      return mouse.focus(mouse.circular(dir));
-	    var boxAr = createBox(curAr);
+	    var boxAr = createBox(curAr, options.overlap);
 	    var areas = _.without(allAreas(), curAr);
 	    var newAr = findClosest(boxAr, areas, dir, true);
 	    if (!newAr) {
@@ -412,9 +413,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	  mouse.circular = function(dir) {
 	    var reflect;
-	    var center = createBox(mouse.ar).center();
+	    var center = createBox(mouse.ar, options.overlap).center();
 	    if (dir) {
-	      reflect = axisReflect(createBox(mouse.el), dir, center);
+	      reflect = axisReflect(createBox(mouse.el, options.overlap), dir, center);
 	    } else {
 	      reflect = pointReflect(mouse.pos, center);
 	    }
@@ -495,13 +496,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	}
 	function dist1(a, b) {
-	  return norm1(vec(a, b));
+	  return norm2(vec(a, b));
 	}
 	function distp(a, b, dir) {
 	  return norm1(proj(vec(a, b), dir));
 	}
 	function norm1(a) {
 	  return Math.sqrt(a.x * a.x + a.y * a.y);
+	}
+	function norm2(a) {
+	  return Math.abs(a.x) + Math.abs(a.y);
 	}
 	function opp(a) {
 	  return {
@@ -519,24 +523,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	}
 	function axisReflect(box, dir, center) {
-	  var r = _.extend({}, box._r);
 	  switch (dir) {
 	    case 'up':
-	      r.top = r.top + 2 * center.y;
+	      box._r.top = box._r.top + 2 * center.y;
 	      break;
 	    case 'down':
-	      r.top = r.top - 2 * center.y;
+	      box._r.top = box._r.top - 2 * center.y;
 	      break;
 	    case 'left':
-	      r.left = r.left + 2 * center.x;
+	      box._r.left = box._r.left + 2 * center.x;
 	      break;
 	    case 'right':
-	      r.left = r.left - 2 * center.x;
+	      box._r.left = box._r.left - 2 * center.x;
 	      break;
 	    default:
 	      break;
 	  }
-	  box._r = r;
 	  return box;
 	}
 	function proj(a, b) {
@@ -567,11 +569,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	var $__0 = __webpack_require__(1),
 	    vec = $__0.vec,
 	    dot = $__0.dot;
-	function createBox(el) {
+	function createBox(el, overlap) {
 	  if (!el)
 	    return;
-	  var r = el.getBoundingClientRect();
+	  var r = _.extend({}, el.getBoundingClientRect());
 	  if (r.height > 0 || r.width > 0) {
+	    if (overlap) {
+	      r.height = r.height - 2 * overlap;
+	      r.width = r.width - 2 * overlap;
+	      r.top = r.top + overlap;
+	      r.left = r.left + overlap;
+	      r.right = r.right - overlap;
+	      r.bottom = r.bottom - overlap;
+	    }
 	    return new Box(el, r);
 	  }
 	}

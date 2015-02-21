@@ -1,9 +1,17 @@
 var { vec, dot } = require("./math");
 
-function createBox(el) {
+function createBox(el, overlap) {
   if (!el) return;
-  var r = el.getBoundingClientRect();
+  var r = _.extend({}, el.getBoundingClientRect());
   if (r.height > 0 || r.width > 0) {
+    if (overlap) {
+      r.height = r.height - 2 * overlap;
+      r.width = r.width - 2 * overlap;
+      r.top = r.top + overlap;
+      r.left = r.left + overlap;
+      r.right = r.right - overlap;
+      r.bottom = r.bottom - overlap;
+    }
     return new Box(el, r);
   }
 }
