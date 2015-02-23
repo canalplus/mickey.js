@@ -1,3 +1,7 @@
+## v1.0.6 (February 23, 2015)
+
+* Improve navigation for overlapped elements
+
 ## v1.0.5 (February 2, 2015)
 
 * Improve close to close navigation
