@@ -1,6 +1,6 @@
-
+// dom-observer.js
 // creates an observer instance
-module.exports = function DOMObserver(target, fn) {
+export function DOMObserver(target, fn) {
   var obs;
   if (window.MutationObserver != null) {
     obs = new MutationObserver(fn);
@@ -13,4 +13,4 @@ module.exports = function DOMObserver(target, fn) {
     };
   }
   return obs;
-};
+}

@@ -12,8 +12,15 @@
   "main": "./src/mickey.js",
   "browser": "./dist/mickey.js",
   "devDependencies": {
-    "webpack": "^1.4.0-beta5",
-    "webpack-traceur-loader": "^0.3.0"
+    "babel-core": "^4.7.16",
+    "babel-loader": "^4.2.0",
+    "babel-runtime": "^4.7.16",
+    "flowcheck": "^0.2.3",
+    "flowcheck-loader": "^1.0.0",
+    "react": "^0.13.1",
+    "react-hot-loader": "^1.2.3",
+    "webpack": "^1.7.3",
+    "webpack-dev-server": "^1.7.0"
   },
   "repository": {
     "type": "git",
@@ -23,6 +30,15 @@
   "license": "Apache License v2.0",
   "bugs": {
     "url": "https://github.com/canalplus/mickey.js/issues"
+  },
+  "scripts": {
+    "clean": "rm -rf ./dist/*",
+    "all": "npm run build && npm run map && npm run min",
+    "build": "webpack ./src/mickey.js ./dist/mickey.js --output-library Mickey --output-library-target umd --progress --colors --optimize-occurence-order",
+    "map": "webpack ./src/mickey.js ./dist/mickey.map.js --output-library Mickey --output-library-target umd --progress --colors --optimize-occurence-order --devtool source-map",
+    "min": "webpack ./src/mickey.js ./dist/mickey.min.js --output-library Mickey --output-library-target umd --progress --colors -p",
+    "make": "npm run clean && npm run all",
+    "start": "node server.js"
   },
   "homepage": "https://github.com/canalplus/mickey.js"
 }

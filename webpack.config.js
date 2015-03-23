@@ -9,10 +9,7 @@ module.exports = {
   },
   module: {
     loaders: [
-      { test: /\.js$/, exclude: [/node_modules\/.*/], loader: "webpack-traceur" },
+      { test: /\.js$/, exclude: /node_modules/, loader: "babel-loader?experimental&optional=runtime" }
     ]
-  },
-  plugins: [
-    new webpack.optimize.OccurrenceOrderPlugin()
-  ],
+  }
 };
