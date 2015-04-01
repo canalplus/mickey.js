@@ -214,7 +214,14 @@ function Mickey(parent, options) {
     if (_.some(els, isSelected)) {
       els = _.sortBy(els, selectedFirst);
     }
-    return _.first(els);
+    return _.first(_.filter(els, function(ar) {
+      return hasSelectables(ar);
+    }));
+  }
+
+  function hasSelectables(el) {
+    var selectables = allSelectables(el);
+    return !(selectables && selectables.length);
   }
 
   // Find all selectable elements inside the given DOM element.
