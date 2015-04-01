@@ -221,7 +221,7 @@ function Mickey(parent, options) {
 
   function hasSelectables(el) {
     var selectables = allSelectables(el);
-    return !(selectables && selectables.length);
+    return !!(selectables && selectables.length);
   }
 
   // Find all selectable elements inside the given DOM element.

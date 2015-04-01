@@ -266,7 +266,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	  function hasSelectables(el) {
 	    var selectables = allSelectables(el);
-	    return !(selectables && selectables.length);
+	    return !!(selectables && selectables.length);
 	  }
 	  function allSelectables(el, dir) {
 	    var els = $find(el, el.getAttribute(options.prefix + 'area') || options.$href);
