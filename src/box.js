@@ -1,8 +1,16 @@
 var { vec, dot } = require("./math");
 
 function createBox(el, overlap) {
-  if (!el) return;
-  var r = _.extend({}, el.getBoundingClientRect());
+  if (!el || !el.getBoundingClientRect) return;
+  var BoundingRect = el.getBoundingClientRect(),
+      r = {
+        top: BoundingRect.top,
+        bottom: BoundingRect.bottom,
+        height: BoundingRect.height,
+        width: BoundingRect.width,
+        left: BoundingRect.left,
+        right: BoundingRect.right
+      };
   if (r.height > 0 || r.width > 0) {
     if (overlap) {
       r.height = r.height - 2 * overlap;
