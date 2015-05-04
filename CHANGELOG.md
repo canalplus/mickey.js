@@ -1,3 +1,7 @@
+## v1.0.7 (February 23, 2015)
+
+* Adapt for getBoundingClientRect native method in last navigator versions.
+
 ## v1.0.6 (February 23, 2015)
 
 * Improve navigation for overlapped elements

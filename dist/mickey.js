@@ -11,41 +11,41 @@
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
-/******/
+
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
-/******/
+
 /******/ 		// Check if module is in cache
 /******/ 		if(installedModules[moduleId])
 /******/ 			return installedModules[moduleId].exports;
-/******/
+
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			exports: {},
 /******/ 			id: moduleId,
 /******/ 			loaded: false
 /******/ 		};
-/******/
+
 /******/ 		// Execute the module function
 /******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
+
 /******/ 		// Flag the module as loaded
 /******/ 		module.loaded = true;
-/******/
+
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/
-/******/
+
+
 /******/ 	// expose the modules object (__webpack_modules__)
 /******/ 	__webpack_require__.m = modules;
-/******/
+
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
-/******/
+
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
-/******/
+
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(0);
 /******/ })
@@ -150,7 +150,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var limitLast = dataSorter('limit', 1, options.prefix);
 	  var selectedFirst = dataSorter('selected', -1, options.prefix);
 	  var mouse = {
-	    version: '1.0.6',
+	    version: '1.0.7',
 	    pos: options.position || nil(),
 	    el: null,
 	    ar: null
@@ -570,9 +570,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    vec = $__0.vec,
 	    dot = $__0.dot;
 	function createBox(el, overlap) {
-	  if (!el)
+	  if (!el || !el.getBoundingClientRect)
 	    return;
-	  var r = _.extend({}, el.getBoundingClientRect());
+	  var BoundingRect = el.getBoundingClientRect(),
+	      r = {
+	        top: BoundingRect.top,
+	        bottom: BoundingRect.bottom,
+	        height: BoundingRect.height,
+	        width: BoundingRect.width,
+	        left: BoundingRect.left,
+	        right: BoundingRect.right
+	      };
 	  if (r.height > 0 || r.width > 0) {
 	    if (overlap) {
 	      r.height = r.height - 2 * overlap;
@@ -674,3 +682,4 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ }
 /******/ ])
 });
+;
