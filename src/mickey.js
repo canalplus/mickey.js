@@ -1,4 +1,3 @@
-'use strict';
 var DOMObserver = require('./dom-observer');
 var { Box, createBox } = require('./box');
 var { $first, $find, $rmvClass, $addClass } = require('./dom');
@@ -73,6 +72,8 @@ function Mickey(parent, options) {
     hoverClass: 'hover',
     areaClass:  'hover',
     trackClass: 'tracked',
+    onChangeArea: _.noop,
+    onChangeSelected: _.noop,
     overlap: 0,
     position: null,
     priority: 'left,top',
@@ -83,9 +84,22 @@ function Mickey(parent, options) {
     $href: null
   });
 
-  var limitLast     = dataSorter('limit', 1, options.prefix);
+  var __PREFIX__ = options.prefix;
+  var __Y_PRIORITY__ = 0;
+  var __X_PRIORITY__ = 0;
 
-  var selectedFirst = dataSorter('selected', -1, options.prefix);
+  if (_.contains(options.priority, 'left'))
+    __X_PRIORITY__ = 1;
+  if (_.contains(options.priority, 'right'))
+    __X_PRIORITY__ = -1;
+
+  if (_.contains(options.priority, 'top'))
+    __Y_PRIORITY__ = 1;
+  if (_.contains(options.priority, 'bottom'))
+    __Y_PRIORITY__ = -1;
+
+  var limitLast = dataSorter('limit', 1, __PREFIX__);
+  var selectedFirst = dataSorter('selected', -1, __PREFIX__);
 
   var mouse = {
     version: '1.0.5',
@@ -106,29 +120,31 @@ function Mickey(parent, options) {
   }
 
   function isArea(el) {
-    return !!el && (el.hasAttribute(options.prefix + 'area') || el === parent);
+    return !!el && (el.hasAttribute(__PREFIX__ + 'area') || el === parent);
   }
 
   function isLimit(el) {
-    return !!el && el.hasAttribute(options.prefix + 'limit');
+    return !!el && el.hasAttribute(__PREFIX__ + 'limit');
   }
 
   function isTracked(el) {
-    return !!el && el.hasAttribute(options.prefix + 'track');
+    return !!el && el.hasAttribute(__PREFIX__ + 'track');
   }
 
   function checkCircular(el, dir) {
-    if (!el || !el.hasAttribute(options.prefix + 'circular')) return false;
-    var circular = el.getAttribute(options.prefix + 'circular');
+    if (!el || !el.hasAttribute(__PREFIX__ + 'circular'))
+      return false;
+
+    var circular = el.getAttribute(__PREFIX__ + 'circular');
     return circular === '' || DIRS[dir] === circular;
   }
 
   function checkLimit(el, dir) {
-    return !!dir && isLimit(el) && el.getAttribute(options.prefix + 'limit') === LIMITS[dir];
+    return !!dir && isLimit(el) && el.getAttribute(__PREFIX__ + 'limit') === LIMITS[dir];
   }
 
   function isSelected(el) {
-    return !!el && el.hasAttribute(options.prefix + 'selected');
+    return !!el && el.hasAttribute(__PREFIX__ + 'selected');
   }
 
   function intersectRect(r1, r2, dir) {
@@ -155,40 +171,48 @@ function Mickey(parent, options) {
     if (pos instanceof Box)
       pos = pos.bound(v);
 
-    var halfSpace = p => dot(vec(pos, p), v) >= -options.overlap;
 
-    var res = _.sortBy(_.map(_.filter(_.map(els, createBox),
-      b => b && halfSpace(area ? b.bound(v_) : b.center())),
-      function(b) {
-        var bound = b.bound(v_);
-        var item = ({
-          el: b.el,
-          proj: distp(pos, b.bound(v_), v),
-          dist: dist1(pos, bound),
-          priority: Infinity
-        });
-        if (!rect || !intersectRect(rect, b._r, v)) { return item; }
-        if (v.y !== 0) {
-          if (_.contains(options.priority, 'left')) {
-            item.priority = bound.x;
-          }
-          if (_.contains(options.priority, 'right')) {
-            item.priority = -bound.x;
-          }
-        }
-        if (v.x !== 0) {
-          if (_.contains(options.priority, 'top')) {
-            item.priority = bound.y;
-          }
-          if (_.contains(options.priority, 'bottom')) {
-            item.priority = -bound.y;
-          }
-        }
+    // create a box object for each DOM elements containing sizing
+    // informations
+    var allBoxes = _.map(els, createBox);
+
+    // filter out elements that are not in the half space described by
+    // the direction vector "v"
+    var halfSpaceFilteredBoxes = _.filter(allBoxes, (b) => {
+      if (!b)
+        return false;
+
+      // reference point on distant box is the center for an area or
+      // is calculated using the opposite direction vector "v_"
+      var distPos = area ? b.bound(v_) : b.center();
+      var distVec = vec(pos, distPos);
+
+      return dot(distVec, v) >= -options.overlap;
+    });
+
+    var res = _.sortByAll(_.map(halfSpaceFilteredBoxes, function(b) {
+      var bound = b.bound(v_);
+
+      var item = {
+        el: b.el,
+        proj: distp(pos, b.bound(v_), v),
+        dist: dist1(pos, bound),
+        priority: Infinity
+      };
+
+      if (!rect || !intersectRect(rect, b._r, v))
         return item;
-      }),
-      ['proj', 'priority', 'dist']);
 
-    if (res.length > 1 && _.find(res, x => x.priority < Infinity)) {
+      if (v.y !== 0)
+        item.priority = bound.x * __X_PRIORITY__;
+
+      if (v.x !== 0)
+        item.priority = bound.y * __Y_PRIORITY__;
+
+      return item;
+    }), ['proj', 'priority', 'dist']);
+
+    if (res.length > 1) {
       res = _.filter(res, x => x.priority < Infinity);
     }
 
@@ -220,7 +244,7 @@ function Mickey(parent, options) {
 
   // Find all selectable elements inside the given DOM element.
   function allSelectables(el, dir) {
-    var els = $find(el, el.getAttribute(options.prefix + 'area') || options.$href);
+    var els = $find(el, el.getAttribute(__PREFIX__ + 'area') || options.$href);
     var lim = _.some(els, isLimit);
     if (lim) els = _.sortBy(els, limitLast);
     if (lim && dir) {
@@ -287,6 +311,12 @@ function Mickey(parent, options) {
       mouse.click(el);
     }
 
+    if (mouse.ar !== memAr)
+      options.onChangeArea(memAr, mouse.ar);
+
+    if (mouse.el !== memEl)
+      options.onChangeSelected(memEl, mouse.el);
+
     if (!inited) inited = true;
 
     return true;
@@ -300,13 +330,17 @@ function Mickey(parent, options) {
   };
 
   mouse.move = function(dir) {
-    if (locked)
-      throw new Error('mickey: locked');
+    if (locked) {
+      console.warn('mickey: locked');
+      return;
+    }
 
     var curEl = mouse.el;
     var boxEl = createBox(curEl);
     if (!boxEl) {
-      if (!fallback(dir)) throw new Error('mickey: cannot move');
+      if (!fallback(dir)) {
+        console.warn('mickey: cannot move');
+      }
       return;
     }
 
@@ -318,7 +352,7 @@ function Mickey(parent, options) {
     if (newEl)
       return mouse.focus(newEl, dir);
 
-    var zidx = +curAr.getAttribute(options.prefix + 'z-index');
+    var zidx = +curAr.getAttribute(__PREFIX__ + 'z-index');
     if (zidx > 0)
       return;
 
@@ -343,11 +377,11 @@ function Mickey(parent, options) {
       return mouse.click(els[0]);
 
     if (isTracked(curAr)) {
-      curAr.setAttribute(options.prefix + 'track-pos', JSON.stringify(mouse.pos));
+      curAr.setAttribute(__PREFIX__ + 'track-pos', JSON.stringify(mouse.pos));
     }
 
     if (isTracked(newAr)) {
-      var trackPos = newAr.getAttribute(options.prefix + 'track-pos');
+      var trackPos = newAr.getAttribute(__PREFIX__ + 'track-pos');
       var trackElt = $first(newAr, '.' + options.trackClass);
       newEl = trackElt || (trackPos && findClosest(JSON.parse(trackPos), els));
     }
@@ -356,10 +390,22 @@ function Mickey(parent, options) {
   };
 
   mouse.click = function(el) {
-    if (locked || !inited) throw new Error('mickey: locked');
+    if (locked || !inited) {
+      console.warn('mickey: locked');
+      return;
+    }
+
     el = el || mouse.el;
-    if (!parent.contains(el, BASE)) throw new Error('mickey: cannot click on non visible element');
-    if (!el && !fallback())         throw new Error('mickey: cannot click');
+    if (!parent.contains(el, BASE)) {
+      console.warn('mickey: cannot click on non visible element');
+      return;
+    }
+
+    if (!el && !fallback()) {
+      console.warn('mickey: cannot click');
+      return;
+    }
+
     dispatchEvent(el, 'click');
     return true;
   };
@@ -436,7 +482,8 @@ function Mickey(parent, options) {
   // mouse initialization
   mouse.init = function() {
     if (inited) {
-      throw new Error('mickey: already initialized');
+      console.warn('mickey: already initialized');
+      return;
     }
 
     bind();
@@ -457,7 +504,7 @@ function Mickey(parent, options) {
 
     // TODO: handle mouse.ar disapearance ?
     var el, ar = mouse.ar;
-    switch(ar.getAttribute(options.prefix + 'policy')) {
+    switch(ar.getAttribute(__PREFIX__ + 'policy')) {
     default:
     case 'closest':  el = mouse.closestInArea(); break;
     case 'defaults': el = mouse.defaultsInArea(); break;

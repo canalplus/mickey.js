@@ -55,7 +55,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	'use strict';
 	var DOMObserver = __webpack_require__(3);
 	var $__0 = __webpack_require__(2),
 	    Box = $__0.Box,
@@ -139,6 +138,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    hoverClass: 'hover',
 	    areaClass: 'hover',
 	    trackClass: 'tracked',
+	    onChangeArea: _.noop,
+	    onChangeSelected: _.noop,
 	    overlap: 0,
 	    position: null,
 	    priority: 'left,top',
@@ -148,8 +149,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	    $area: '[data-nav-area]',
 	    $href: null
 	  });
-	  var limitLast = dataSorter('limit', 1, options.prefix);
-	  var selectedFirst = dataSorter('selected', -1, options.prefix);
+	  var __PREFIX__ = options.prefix;
+	  var __Y_PRIORITY__ = 0;
+	  var __X_PRIORITY__ = 0;
+	  if (_.contains(options.priority, 'left'))
+	    __X_PRIORITY__ = 1;
+	  if (_.contains(options.priority, 'right'))
+	    __X_PRIORITY__ = -1;
+	  if (_.contains(options.priority, 'top'))
+	    __Y_PRIORITY__ = 1;
+	  if (_.contains(options.priority, 'bottom'))
+	    __Y_PRIORITY__ = -1;
+	  var limitLast = dataSorter('limit', 1, __PREFIX__);
+	  var selectedFirst = dataSorter('selected', -1, __PREFIX__);
 	  var mouse = {
 	    version: '1.0.5',
 	    pos: options.position || nil(),
@@ -167,25 +179,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	    el.dispatchEvent(ev);
 	  }
 	  function isArea(el) {
-	    return !!el && (el.hasAttribute(options.prefix + 'area') || el === parent);
+	    return !!el && (el.hasAttribute(__PREFIX__ + 'area') || el === parent);
 	  }
 	  function isLimit(el) {
-	    return !!el && el.hasAttribute(options.prefix + 'limit');
+	    return !!el && el.hasAttribute(__PREFIX__ + 'limit');
 	  }
 	  function isTracked(el) {
-	    return !!el && el.hasAttribute(options.prefix + 'track');
+	    return !!el && el.hasAttribute(__PREFIX__ + 'track');
 	  }
 	  function checkCircular(el, dir) {
-	    if (!el || !el.hasAttribute(options.prefix + 'circular'))
+	    if (!el || !el.hasAttribute(__PREFIX__ + 'circular'))
 	      return false;
-	    var circular = el.getAttribute(options.prefix + 'circular');
+	    var circular = el.getAttribute(__PREFIX__ + 'circular');
 	    return circular === '' || DIRS[dir] === circular;
 	  }
 	  function checkLimit(el, dir) {
-	    return !!dir && isLimit(el) && el.getAttribute(options.prefix + 'limit') === LIMITS[dir];
+	    return !!dir && isLimit(el) && el.getAttribute(__PREFIX__ + 'limit') === LIMITS[dir];
 	  }
 	  function isSelected(el) {
-	    return !!el && el.hasAttribute(options.prefix + 'selected');
+	    return !!el && el.hasAttribute(__PREFIX__ + 'selected');
 	  }
 	  function intersectRect(r1, r2, dir) {
 	    if (dir.y !== 0) {
@@ -202,43 +214,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var rect = pos._r;
 	    if (pos instanceof Box)
 	      pos = pos.bound(v);
-	    var halfSpace = (function(p) {
-	      return dot(vec(pos, p), v) >= -options.overlap;
-	    });
-	    var res = _.sortBy(_.map(_.filter(_.map(els, createBox), (function(b) {
-	      return b && halfSpace(area ? b.bound(v_) : b.center());
-	    })), function(b) {
+	    var allBoxes = _.map(els, createBox);
+	    var halfSpaceFilteredBoxes = _.filter(allBoxes, (function(b) {
+	      if (!b)
+	        return false;
+	      var distPos = area ? b.bound(v_) : b.center();
+	      var distVec = vec(pos, distPos);
+	      return dot(distVec, v) >= -options.overlap;
+	    }));
+	    var res = _.sortByAll(_.map(halfSpaceFilteredBoxes, function(b) {
 	      var bound = b.bound(v_);
-	      var item = ({
+	      var item = {
 	        el: b.el,
 	        proj: distp(pos, b.bound(v_), v),
 	        dist: dist1(pos, bound),
 	        priority: Infinity
-	      });
-	      if (!rect || !intersectRect(rect, b._r, v)) {
+	      };
+	      if (!rect || !intersectRect(rect, b._r, v))
 	        return item;
-	      }
-	      if (v.y !== 0) {
-	        if (_.contains(options.priority, 'left')) {
-	          item.priority = bound.x;
-	        }
-	        if (_.contains(options.priority, 'right')) {
-	          item.priority = -bound.x;
-	        }
-	      }
-	      if (v.x !== 0) {
-	        if (_.contains(options.priority, 'top')) {
-	          item.priority = bound.y;
-	        }
-	        if (_.contains(options.priority, 'bottom')) {
-	          item.priority = -bound.y;
-	        }
-	      }
+	      if (v.y !== 0)
+	        item.priority = bound.x * __X_PRIORITY__;
+	      if (v.x !== 0)
+	        item.priority = bound.y * __Y_PRIORITY__;
 	      return item;
 	    }), ['proj', 'priority', 'dist']);
-	    if (res.length > 1 && _.find(res, (function(x) {
-	      return x.priority < Infinity;
-	    }))) {
+	    if (res.length > 1) {
 	      res = _.filter(res, (function(x) {
 	        return x.priority < Infinity;
 	      }));
@@ -262,7 +262,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return _.first(els);
 	  }
 	  function allSelectables(el, dir) {
-	    var els = $find(el, el.getAttribute(options.prefix + 'area') || options.$href);
+	    var els = $find(el, el.getAttribute(__PREFIX__ + 'area') || options.$href);
 	    var lim = _.some(els, isLimit);
 	    if (lim)
 	      els = _.sortBy(els, limitLast);
@@ -321,6 +321,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (newLimit && checkLimit(newEl, dir)) {
 	      mouse.click(el);
 	    }
+	    if (mouse.ar !== memAr)
+	      options.onChangeArea(memAr, mouse.ar);
+	    if (mouse.el !== memEl)
+	      options.onChangeSelected(memEl, mouse.el);
 	    if (!inited)
 	      inited = true;
 	    return true;
@@ -332,13 +336,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	  };
 	  mouse.move = function(dir) {
-	    if (locked)
-	      throw new Error('mickey: locked');
+	    if (locked) {
+	      console.warn('mickey: locked');
+	      return;
+	    }
 	    var curEl = mouse.el;
 	    var boxEl = createBox(curEl);
 	    if (!boxEl) {
-	      if (!fallback(dir))
-	        throw new Error('mickey: cannot move');
+	      if (!fallback(dir)) {
+	        console.warn('mickey: cannot move');
+	      }
 	      return;
 	    }
 	    var curAr = mouse.area();
@@ -346,7 +353,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var newEl = findClosest(boxEl, selectables, dir);
 	    if (newEl)
 	      return mouse.focus(newEl, dir);
-	    var zidx = +curAr.getAttribute(options.prefix + 'z-index');
+	    var zidx = +curAr.getAttribute(__PREFIX__ + 'z-index');
 	    if (zidx > 0)
 	      return;
 	    if (checkCircular(curAr, dir))
@@ -364,23 +371,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (els.length === 1 && checkLimit(els[0], dir))
 	      return mouse.click(els[0]);
 	    if (isTracked(curAr)) {
-	      curAr.setAttribute(options.prefix + 'track-pos', JSON.stringify(mouse.pos));
+	      curAr.setAttribute(__PREFIX__ + 'track-pos', JSON.stringify(mouse.pos));
 	    }
 	    if (isTracked(newAr)) {
-	      var trackPos = newAr.getAttribute(options.prefix + 'track-pos');
+	      var trackPos = newAr.getAttribute(__PREFIX__ + 'track-pos');
 	      var trackElt = $first(newAr, '.' + options.trackClass);
 	      newEl = trackElt || (trackPos && findClosest(JSON.parse(trackPos), els));
 	    }
 	    return mouse.focus(newEl || els[0], dir);
 	  };
 	  mouse.click = function(el) {
-	    if (locked || !inited)
-	      throw new Error('mickey: locked');
+	    if (locked || !inited) {
+	      console.warn('mickey: locked');
+	      return;
+	    }
 	    el = el || mouse.el;
-	    if (!parent.contains(el, BASE))
-	      throw new Error('mickey: cannot click on non visible element');
-	    if (!el && !fallback())
-	      throw new Error('mickey: cannot click');
+	    if (!parent.contains(el, BASE)) {
+	      console.warn('mickey: cannot click on non visible element');
+	      return;
+	    }
+	    if (!el && !fallback()) {
+	      console.warn('mickey: cannot click');
+	      return;
+	    }
 	    dispatchEvent(el, 'click');
 	    return true;
 	  };
@@ -442,7 +455,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	  mouse.init = function() {
 	    if (inited) {
-	      throw new Error('mickey: already initialized');
+	      console.warn('mickey: already initialized');
+	      return;
 	    }
 	    bind();
 	    mouse.focus(options.position ? mouse.hovered() : mouse.defaults());
@@ -455,7 +469,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return;
 	    var el,
 	        ar = mouse.ar;
-	    switch (ar.getAttribute(options.prefix + 'policy')) {
+	    switch (ar.getAttribute(__PREFIX__ + 'policy')) {
 	      default:
 	      case 'closest':
 	        el = mouse.closestInArea();
