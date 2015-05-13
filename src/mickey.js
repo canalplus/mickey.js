@@ -52,8 +52,12 @@ function keyListener(mouse) {
   };
 
   return {
-    bind:   _.bind(document.addEventListener,    document, 'keydown', listener),
-    unbind: _.bind(document.removeEventListener, document, 'keydown', listener)
+    bind: function() {
+      document.addEventListener("keydown", listener);
+    },
+    unbind: function() {
+      document.removeEventListener("keydown", listener);
+    },
   };
 }
 
