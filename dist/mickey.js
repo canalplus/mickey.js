@@ -120,8 +120,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  });
 	  return {
-	    bind: _.bind(document.addEventListener, document, 'keydown', listener),
-	    unbind: _.bind(document.removeEventListener, document, 'keydown', listener)
+	    bind: function() {
+	      document.addEventListener("keydown", listener);
+	    },
+	    unbind: function() {
+	      document.removeEventListener("keydown", listener);
+	    }
 	  };
 	}
 	function dataSorter(name, ord, prefix) {
@@ -135,6 +139,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var locked = false;
 	  var inited = false;
 	  options = _.defaults(options || {}, {
+	    changeClass: true,
 	    hoverClass: 'hover',
 	    areaClass: 'hover',
 	    trackClass: 'tracked',
@@ -305,26 +310,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var shiftArea = newAr !== memAr;
 	    if (shiftArea) {
 	      mouse.ar = newAr;
-	      $rmvClass(memAr, options.areaClass);
-	      $addClass(newAr, options.areaClass);
+	      if (options.changeClass) {
+	        $rmvClass(memAr, options.areaClass);
+	        $addClass(newAr, options.areaClass);
+	      }
 	    }
 	    if (newEl !== memEl && (newAr !== memAr || !newLimit || fallback)) {
 	      mouse.pos = box.center();
 	      mouse.el = newEl;
-	      $rmvClass(memEl, options.hoverClass);
-	      $addClass(memEl, options.trackClass, shiftArea && isTracked(memAr));
+	      if (options.changeClass) {
+	        $rmvClass(memEl, options.hoverClass);
+	        $addClass(memEl, options.trackClass, shiftArea && isTracked(memAr));
+	      }
 	      dispatchEvent(memEl, 'mouseout');
 	      dispatchEvent(newEl, 'mouseover');
 	    }
-	    $rmvClass(newEl, options.trackClass);
-	    $addClass(newEl, options.hoverClass, !newLimit);
+	    if (options.changeClass) {
+	      $rmvClass(newEl, options.trackClass);
+	      $addClass(newEl, options.hoverClass, !newLimit);
+	    }
 	    if (newLimit && checkLimit(newEl, dir)) {
 	      mouse.click(el);
 	    }
 	    if (mouse.ar !== memAr)
 	      options.onChangeArea(memAr, mouse.ar);
 	    if (mouse.el !== memEl)
-	      options.onChangeSelected(memEl, mouse.el);
+	      options.onChangeSelected(memEl, mouse.el, mouse.ar);
 	    if (!inited)
 	      inited = true;
 	    return true;
@@ -435,11 +446,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	  mouse.block = function() {
 	    locked = true;
-	    $addClass(mouse.el, 'blocked');
+	    if (options.changeClass)
+	      $addClass(mouse.el, 'blocked');
 	  };
 	  mouse.unblock = function() {
 	    locked = false;
-	    $rmvClass(mouse.el, 'blocked');
+	    if (options.changeClass)
+	      $rmvClass(mouse.el, 'blocked');
 	  };
 	  mouse.clear = _.once((function() {
 	    unbind();
@@ -515,7 +528,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return norm1(proj(vec(a, b), dir));
 	}
 	function norm1(a) {
-	  return Math.sqrt(a.x * a.x + a.y * a.y);
+	  return Math.abs(a.x) + Math.abs(a.y);
 	}
 	function opp(a) {
 	  return {
@@ -585,9 +598,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (!el)
 	    return;
 	  var r = el.getBoundingClientRect();
-	  if (r.height > 0 || r.width > 0) {
-	    return new Box(el, r);
-	  }
+	  var h = r.height;
+	  var w = r.width;
+	  if (h === 0 && w === 0)
+	    return;
+	  return new Box(el, {
+	    height: h,
+	    width: w,
+	    top: r.top,
+	    right: r.right,
+	    bottom: r.bottom,
+	    left: r.left
+	  });
 	}
 	function Box(el, r) {
 	  this.el = el;
