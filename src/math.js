@@ -15,7 +15,7 @@ function distp(a, b, dir) {
 }
 
 function norm1(a) {
-  return Math.sqrt(a.x * a.x + a.y * a.y);
+  return Math.abs(a.x) + Math.abs(a.y);
 }
 
 function opp(a) {
@@ -27,7 +27,10 @@ function dot(a, b) {
 }
 
 function pointReflect(a, c) {
-  return { x: 2 * c.x - a.x, y: 2 * c.y - a.y };
+  return {
+    x: 2 * c.x - a.x,
+    y: 2 * c.y - a.y
+  };
 }
 
 function axisReflect(box, dir, center) {

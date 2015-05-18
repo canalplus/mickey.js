@@ -1,11 +1,24 @@
 var { vec, dot } = require("./math");
 
 function createBox(el) {
-  if (!el) return;
+  if (!el)
+    return;
+
   var r = el.getBoundingClientRect();
-  if (r.height > 0 || r.width > 0) {
-    return new Box(el, r);
-  }
+  var h = r.height;
+  var w = r.width;
+  if (h === 0 && w === 0)
+    return;
+
+  return new Box(el, {
+    height: h,
+    width:  w,
+
+    top:    r.top,
+    right:  r.right,
+    bottom: r.bottom,
+    left:   r.left,
+  });
 }
 
 function Box(el, r) {
