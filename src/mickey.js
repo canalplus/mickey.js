@@ -73,6 +73,7 @@ function Mickey(parent, options) {
   var inited = false;
 
   options = _.defaults(options || {}, {
+    changeClass: true,
     hoverClass: 'hover',
     areaClass:  'hover',
     trackClass: 'tracked',
@@ -282,7 +283,8 @@ function Mickey(parent, options) {
       return mouse.focus(mouse.defaults(el));
 
     var box = createBox(el);
-    if (!box) return false;
+    if (!box)
+      return false;
 
     var newEl = el;
     var newAr = mouse.area(newEl);
@@ -294,22 +296,28 @@ function Mickey(parent, options) {
 
     if (shiftArea) {
       mouse.ar = newAr;
-      $rmvClass(memAr, options.areaClass);
-      $addClass(newAr, options.areaClass);
+      if (options.changeClass) {
+        $rmvClass(memAr, options.areaClass);
+        $addClass(newAr, options.areaClass);
+      }
     }
 
     if (newEl !== memEl &&
        (newAr !== memAr || !newLimit || fallback)) {
       mouse.pos = box.center();
       mouse.el = newEl;
-      $rmvClass(memEl, options.hoverClass);
-      $addClass(memEl, options.trackClass, shiftArea && isTracked(memAr));
+      if (options.changeClass) {
+        $rmvClass(memEl, options.hoverClass);
+        $addClass(memEl, options.trackClass, shiftArea && isTracked(memAr));
+      }
       dispatchEvent(memEl, 'mouseout');
       dispatchEvent(newEl, 'mouseover');
     }
 
-    $rmvClass(newEl, options.trackClass);
-    $addClass(newEl, options.hoverClass, !newLimit);
+    if (options.changeClass) {
+      $rmvClass(newEl, options.trackClass);
+      $addClass(newEl, options.hoverClass, !newLimit);
+    }
 
     if (newLimit && checkLimit(newEl, dir)) {
       mouse.click(el);
@@ -319,7 +327,7 @@ function Mickey(parent, options) {
       options.onChangeArea(memAr, mouse.ar);
 
     if (mouse.el !== memEl)
-      options.onChangeSelected(memEl, mouse.el);
+      options.onChangeSelected(memEl, mouse.el, mouse.ar);
 
     if (!inited) inited = true;
 
@@ -459,12 +467,14 @@ function Mickey(parent, options) {
 
   mouse.block = function() {
     locked = true;
-    $addClass(mouse.el, 'blocked');
+    if (options.changeClass)
+      $addClass(mouse.el, 'blocked');
   };
 
   mouse.unblock = function() {
     locked = false;
-    $rmvClass(mouse.el, 'blocked');
+    if (options.changeClass)
+      $rmvClass(mouse.el, 'blocked');
   };
 
   // clear mouse
