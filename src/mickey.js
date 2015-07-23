@@ -217,7 +217,7 @@ function Mickey(parent, options) {
       return item;
     }), ['proj', 'priority', 'dist']);
 
-    if (res.length > 1) {
+    if (res.length > 1 && _.find(res, x => x.priority < Infinity)) {
       res = _.filter(res, x => x.priority < Infinity);
     }
 
