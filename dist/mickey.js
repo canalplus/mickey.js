@@ -243,7 +243,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        item.priority = bound.y * __Y_PRIORITY__;
 	      return item;
 	    }), ['proj', 'priority', 'dist']);
-	    if (res.length > 1) {
+	    if (res.length > 1 && _.find(res, (function(x) {
+	      return x.priority < Infinity;
+	    }))) {
 	      res = _.filter(res, (function(x) {
 	        return x.priority < Infinity;
 	      }));
