@@ -338,8 +338,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      options.onChangeArea(memAr, mouse.ar);
 	    if (mouse.el !== memEl)
 	      options.onChangeSelected(memEl, mouse.el, mouse.ar);
-	    if (!inited)
+	    if (!inited) {
+	      bind();
 	      inited = true;
+	    }
 	    return true;
 	  };
 	  mouse.position = function() {
