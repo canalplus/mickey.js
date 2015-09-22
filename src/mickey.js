@@ -329,7 +329,10 @@ function Mickey(parent, options) {
     if (mouse.el !== memEl)
       options.onChangeSelected(memEl, mouse.el, mouse.ar);
 
-    if (!inited) inited = true;
+    if (!inited) {
+      bind();
+      inited = true;
+    }
 
     return true;
   };
