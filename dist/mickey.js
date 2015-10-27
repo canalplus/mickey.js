@@ -364,6 +364,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return;
 	    }
 	    var curAr = mouse.area();
+	    if (!curAr) {
+	      if (!fallback(dir)) {
+	        console.warn('mickey: cannot move');
+	      }
+	      return;
+	    }
 	    var selectables = _.without(allSelectables(curAr, dir), curEl);
 	    var newEl = findClosest(boxEl, selectables, dir);
 	    if (newEl)
@@ -419,7 +425,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (isArea(el))
 	        return el;
 	    }
-	    return parent;
 	  };
 	  mouse.closest = function(ar) {
 	    var els = _.flatten(_.map(ar ? [ar] : allAreas(), allSelectables));

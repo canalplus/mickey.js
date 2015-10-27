@@ -362,6 +362,13 @@ function Mickey(parent, options) {
     // find the closest element in the same area as the current focused
     // element
     var curAr = mouse.area();
+    if (!curAr) {
+      if (!fallback(dir)) {
+        console.warn('mickey: cannot move');
+      }
+      return;
+    }
+
     var selectables = _.without(allSelectables(curAr, dir), curEl);
     var newEl = findClosest(boxEl, selectables, dir);
     if (newEl)
@@ -432,7 +439,6 @@ function Mickey(parent, options) {
       el = el.parentNode;
       if (isArea(el)) return el;
     }
-    return parent;
   };
 
   mouse.closest = function(ar) {
