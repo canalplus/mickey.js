@@ -125,7 +125,7 @@ function Mickey(parent, options) {
   }
 
   function isArea(el) {
-    return !!el && (el.hasAttribute(__PREFIX__ + 'area') || el === parent);
+    return !!el && (el.hasAttribute(__PREFIX__ + 'area'));
   }
 
   function isLimit(el) {

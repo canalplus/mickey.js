@@ -184,7 +184,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    el.dispatchEvent(ev);
 	  }
 	  function isArea(el) {
-	    return !!el && (el.hasAttribute(__PREFIX__ + 'area') || el === parent);
+	    return !!el && (el.hasAttribute(__PREFIX__ + 'area'));
 	  }
 	  function isLimit(el) {
 	    return !!el && el.hasAttribute(__PREFIX__ + 'limit');
