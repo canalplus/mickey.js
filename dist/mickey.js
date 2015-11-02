@@ -398,8 +398,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var trackPos = newAr.getAttribute(__PREFIX__ + 'track-pos');
 	      var trackElt = $first(newAr, '.' + options.trackClass);
 	      newEl = trackElt || (trackPos && findClosest(JSON.parse(trackPos), els));
+	      els.unshift(newEl);
 	    }
-	    return mouse.focus(newEl || els[0], dir);
+	    var boxes = _.filter(_.map(els, createBox), (function(b) {
+	      return !!b;
+	    }));
+	    if (boxes.length) {
+	      return mouse.focus(boxes[0].el, dir);
+	    }
 	  };
 	  mouse.click = function(el) {
 	    if (locked || !inited) {
