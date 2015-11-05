@@ -1,16 +1,8 @@
-var DOMObserver = require('./dom-observer');
-var { Box, createBox } = require('./box');
-var { $first, $find, $rmvClass, $addClass } = require('./dom');
-var {
-  dot,
-  vec,
-  opp,
-  nil,
-  dist1,
-  distp,
-  axisReflect,
-  pointReflect
-} = require('./math');
+'use strict';
+import DOMObserver from './dom-observer.js';
+import { Box, createBox } from './box.js';
+import { $first, $find, $rmvClass, $addClass } from './dom.js';
+import { dot, vec, opp, nil, dist1, distp, axisReflect, pointReflect } from './math.js';
 
 var BASE = {
   left:  { x: -1, y: 0 },
@@ -24,7 +16,7 @@ var KEYS = {
   38: 'up',
   39: 'right',
   40: 'down',
-  13: 'click'
+  13: 'click',
 };
 
 var LIMITS = {
@@ -38,7 +30,7 @@ var DIRS = {
   left:  'horizontal',
   right: 'horizontal',
   up:    'vertical',
-  down:  'vertical'
+  down:  'vertical',
 };
 
 function keyListener(mouse) {
@@ -52,8 +44,8 @@ function keyListener(mouse) {
   };
 
   return {
-    bind:   _.bind(document.addEventListener,    document, 'keydown', listener),
-    unbind: _.bind(document.removeEventListener, document, 'keydown', listener)
+    bind:   document.addEventListener.bind(document, 'keydown', listener),
+    unbind: document.removeEventListener.bind(document, 'keydown', listener),
   };
 }
 
@@ -68,7 +60,7 @@ function Mickey(parent, options) {
   var locked = false;
   var inited = false;
 
-  options = _.defaults(options || {}, {
+  options = (options || {}).defaults({
     hoverClass: 'hover',
     areaClass:  'hover',
     trackClass: 'tracked',
@@ -79,7 +71,7 @@ function Mickey(parent, options) {
     observer: DOMObserver,
     prefix: 'data-nav-',
     $area: '[data-nav-area]',
-    $href: null
+    $href: null,
   });
 
   var limitLast     = dataSorter('limit', 1, options.prefix);
@@ -134,9 +126,11 @@ function Mickey(parent, options) {
     if (dir.y !== 0) {
       return !(r2.left >= r1.left + r1.width || r2.left + r2.width <= r1.left);
     }
+
     if (dir.x !== 0) {
       return !(r2.top >= r1.top + r1.height || r2.top + r2.height <= r1.top);
     }
+
     return false;
   }
 
@@ -156,39 +150,45 @@ function Mickey(parent, options) {
 
     var halfSpace = p => dot(vec(pos, p), v) >= 0;
 
-    var res = _.sortBy(_.map(_.filter(_.map(els, function(el) { return createBox(el, options.overlap); }),
-      b => b && halfSpace(area ? b.bound(v_) : b.center())),
-      function(b) {
-        var bound = b.bound(v_);
-        var item = ({
-          el: b.el,
-          proj: distp(pos, b.bound(v_), v),
-          dist: dist1(pos, bound),
-          priority: Infinity
-        });
-        if (!rect || !intersectRect(rect, b._r, v)) { return item; }
-        if (v.y !== 0) {
-          if (_.contains(options.priority, 'left')) {
-            item.priority = bound.x;
-          }
-          if (_.contains(options.priority, 'right')) {
-            item.priority = -bound.x;
-          }
-        }
-        if (v.x !== 0) {
-          if (_.contains(options.priority, 'top')) {
-            item.priority = bound.y;
-          }
-          if (_.contains(options.priority, 'bottom')) {
-            item.priority = -bound.y;
-          }
-        }
-        return item;
-      }),
-      ['proj', 'priority', 'dist']);
+    var res = els.map((el) => {
+      return createBox(el, options.overlap);
+    }).filter((b) => {
+      return b && halfSpace(area ? b.bound(v_) : b.center());
+    }).map((b) => {
+      var bound = b.bound(v_);
+      var item = ({
+        el: b.el,
+        proj: distp(pos, b.bound(v_), v),
+        dist: dist1(pos, bound),
+        priority: Infinity,
+      });
+      if (!rect || !intersectRect(rect, b._r, v)) { return item; }
 
-    if (res.length > 1 && _.find(res, x => x.priority < Infinity)) {
-      res = _.filter(res, x => x.priority < Infinity);
+      if (v.y !== 0) {
+        if (options.priority.contains('left')) {
+          item.priority = bound.x;
+        }
+
+        if (options.priority.contains('right')) {
+          item.priority = -bound.x;
+        }
+      }
+
+      if (v.x !== 0) {
+        if (options.priority.contains('top')) {
+          item.priority = bound.y;
+        }
+
+        if (options.priority.contains('bottom')) {
+          item.priority = -bound.y;
+        }
+      }
+
+      return item;
+    }).sortBy(['proj', 'priority', 'dist']);
+
+    if (res.length > 1 && res.find(x => x.priority < Infinity)) {
+      res = res.filter(x => x.priority < Infinity);
     }
 
     return res[0] && res[0].el;
@@ -204,26 +204,27 @@ function Mickey(parent, options) {
   // Find all the areas in the DOM.
   function allAreas() {
     var els = $find(parent, options.$area);
-    return els.length ? els: [parent];
+    return els.length ? els : [parent];
   }
 
   // Find the default area: the one containing prefix-selected
   // attribute or (if none) the first one in the DOM.
   function defaultArea() {
     var els = allAreas();
-    if (_.some(els, isSelected)) {
-      els = _.sortBy(els, selectedFirst);
+    if (els.some(isSelected)) {
+      els = els.sortBy(selectedFirst);
     }
-    return _.first(els);
+
+    return els.first;
   }
 
   // Find all selectable elements inside the given DOM element.
   function allSelectables(el, dir) {
     var els = $find(el, el.getAttribute(options.prefix + 'area') || options.$href);
-    var lim = _.some(els, isLimit);
-    if (lim) els = _.sortBy(els, limitLast);
+    var lim = els.some(isLimit);
+    if (lim) els = els.sortBy(limitLast);
     if (lim && dir) {
-      return _.filter(els, el => !isLimit(el) || checkLimit(el, dir));
+      return els.filter(el => !isLimit(el) || checkLimit(el, dir));
     } else {
       return els;
     }
@@ -234,18 +235,18 @@ function Mickey(parent, options) {
   }
 
   var obs;
-  var bind = _.once(() => {
+  var bind = (() => {
     obs = options.observer(parent, watch);
     if (listener.bind) listener.bind(parent);
-  });
+  }).once();
 
-  var unbind = _.once(() => {
+  var unbind = (() => {
     obs && obs.disconnect();
     if (listener.unbind) listener.unbind();
-  });
+  }).once();
 
   mouse.focus = function(el, dir, fallback) {
-    if (_.isString(el)) {
+    if (Object.isString(el)) {
       el = parent.querySelector(el);
     }
 
@@ -294,7 +295,7 @@ function Mickey(parent, options) {
   mouse.position = function() {
     return {
       x: mouse.pos.x,
-      y: mouse.pos.y
+      y: mouse.pos.y,
     };
   };
 
@@ -312,7 +313,7 @@ function Mickey(parent, options) {
     // find the closest element in the same area as the current focused
     // element
     var curAr = mouse.area();
-    var selectables = _.without(allSelectables(curAr, dir), curEl);
+    var selectables = allSelectables(curAr, dir).without(curEl);
     var newEl = findClosest(boxEl, selectables, dir);
     if (newEl)
       return mouse.focus(newEl, dir);
@@ -327,7 +328,7 @@ function Mickey(parent, options) {
     // if no close element has been found, we may have to search for the
     // closest area, or check for a limit element
     var boxAr = createBox(curAr, options.overlap);
-    var areas = _.without(allAreas(), curAr);
+    var areas = allAreas().without(curAr);
     var newAr = findClosest(boxAr, areas, dir, true);
     if (!newAr) {
       if (checkLimit(mouse.el, dir))
@@ -370,11 +371,12 @@ function Mickey(parent, options) {
       el = el.parentNode;
       if (isArea(el)) return el;
     }
+
     return parent;
   };
 
   mouse.closest = function(ar) {
-    var els = _.flatten(_.map(ar ? [ar] : allAreas(), allSelectables));
+    var els = (ar ? [ar] : allAreas()).map(allSelectables).flatten();
     return findClosest(mouse.pos, els);
   };
 
@@ -391,7 +393,7 @@ function Mickey(parent, options) {
   };
 
   mouse.hovered = function() {
-    var els = _.flatten(_.map(allAreas(), allSelectables));
+    var els = allAreas().map(allSelectables).flatten();
     return findHovered(mouse.pos, els);
   };
 
@@ -403,6 +405,7 @@ function Mickey(parent, options) {
     } else {
       reflect = pointReflect(mouse.pos, center);
     }
+
     return findClosest(reflect, allSelectables(mouse.ar), dir);
   };
 
@@ -417,7 +420,7 @@ function Mickey(parent, options) {
   };
 
   // clear mouse
-  mouse.clear = _.once(() => {
+  mouse.clear = (() => {
     unbind();
     mouse.pos = nil();
     mouse.el = null;
@@ -425,7 +428,7 @@ function Mickey(parent, options) {
     parent = null;
     locked = false;
     listener = null;
-  });
+  }).once;
 
   // focus update on current area
   mouse.update = function() {
@@ -456,7 +459,7 @@ function Mickey(parent, options) {
 
     // TODO: handle mouse.ar disapearance ?
     var el, ar = mouse.ar;
-    switch(ar.getAttribute(options.prefix + 'policy')) {
+    switch (ar.getAttribute(options.prefix + 'policy')) {
     default:
     case 'closest':  el = mouse.closestInArea(); break;
     case 'defaults': el = mouse.defaultsInArea(); break;
@@ -470,4 +473,4 @@ function Mickey(parent, options) {
   return mouse;
 }
 
-module.exports = Mickey;
+export default Mickey;

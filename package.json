@@ -1,6 +1,6 @@
 {
   "name": "mickey.js",
-  "version": "1.0.7",
+  "version": "2.0.0",
   "description": "Your ally for web applications over Remote Controls",
   "keywords": [
     "remote control",
@@ -12,8 +12,10 @@
   "main": "./src/mickey.js",
   "browser": "./dist/mickey.js",
   "devDependencies": {
-    "webpack": "^1.4.0-beta5",
-    "webpack-traceur-loader": "^0.3.0"
+    "babel": "^6.0.15",
+    "babel-core": "^6.1.2",
+    "babel-loader": "^6.0.1",
+    "webpack": "^1.12.2"
   },
   "repository": {
     "type": "git",
