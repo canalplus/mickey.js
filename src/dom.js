@@ -3,7 +3,12 @@ function $first(el, selector) {
 }
 
 function $find(el, selector) {
-  return _.toArray(el.querySelectorAll(selector));
+  var els = el.querySelectorAll(selector);
+  var arr = [];
+  for (var i = 0; i < els.length; i++) {
+    arr.push(els[i]);
+  }
+  return arr;
 }
 
 function $addClass(el, cl, add) {

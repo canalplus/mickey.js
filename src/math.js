@@ -34,7 +34,16 @@ function pointReflect(a, c) {
 }
 
 function axisReflect(box, dir, center) {
-  var r = _.extend({}, box._r);
+  var _r = box._r;
+  var r = {
+    height: _r.height,
+    width:  _r.width,
+    top:    _r.top,
+    right:  _r.right,
+    bottom: _r.bottom,
+    left:   _r.left,
+  };
+
   switch (dir) {
   case 'up':
     r.top = r.top + 2 * center.y;
@@ -51,6 +60,7 @@ function axisReflect(box, dir, center) {
   default:
     break;
   }
+
   box._r = r;
   return box;
 }
