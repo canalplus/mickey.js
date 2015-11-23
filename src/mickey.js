@@ -177,7 +177,7 @@ function Mickey(parent, options) {
   // If a direction is given as a vector or string 'up', 'left'
   // 'down', 'right', the closest element will be searched in the
   // halfspace defined by the direction and the position.
-  function findClosest(pos, els, dir, area) {
+  function findClosest(pos, els, dir) {
     var v  = dir ? BASE[dir] : nil();
     var v_ = opp(v);
     var rect = pos._r;
@@ -198,7 +198,7 @@ function Mickey(parent, options) {
 
       // reference point on distant box is the center for an area or
       // is calculated using the opposite direction vector "v_"
-      var distPos = area ? b.bound(v_) : b.center();
+      var distPos = b.center();
       var distVec = vec(pos, distPos);
 
       return dot(distVec, v) >= -options.overlap;
