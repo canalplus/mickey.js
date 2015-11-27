@@ -358,7 +358,9 @@ function Mickey(parent, options) {
 
   mouse.move = function(dir) {
     if (locked) {
-      console.warn('mickey: locked');
+      if (__DEV__) {
+        console.warn('mickey: locked');
+      }
       return;
     }
 
@@ -366,7 +368,9 @@ function Mickey(parent, options) {
     var boxEl = createBox(curEl);
     if (!boxEl) {
       if (!fallback(dir)) {
-        console.warn('mickey: cannot move');
+        if (__DEV__) {
+          console.warn('mickey: cannot move');
+        }
       }
       return;
     }
@@ -376,7 +380,9 @@ function Mickey(parent, options) {
     var curAr = mouse.area();
     if (!curAr) {
       if (!fallback(dir)) {
-        console.warn('mickey: cannot move');
+        if (__DEV__) {
+          console.warn('mickey: cannot move');
+        }
       }
       return;
     }
@@ -429,18 +435,24 @@ function Mickey(parent, options) {
 
   mouse.click = function(el) {
     if (locked || !inited) {
-      console.warn('mickey: locked');
+      if (__DEV__) {
+        console.warn('mickey: locked');
+      }
       return;
     }
 
     el = el || mouse.el;
     if (!parent.contains(el, BASE)) {
-      console.warn('mickey: cannot click on non visible element');
+      if (__DEV__) {
+        console.warn('mickey: cannot click on non visible element');
+      }
       return;
     }
 
     if (!el && !fallback()) {
-      console.warn('mickey: cannot click');
+      if (__DEV__) {
+        console.warn('mickey: cannot click');
+      }
       return;
     }
 
@@ -521,7 +533,9 @@ function Mickey(parent, options) {
   // mouse initialization
   mouse.init = function() {
     if (inited) {
-      console.warn('mickey: already initialized');
+      if (__DEV__) {
+        console.warn('mickey: already initialized');
+      }
       return;
     }
 
