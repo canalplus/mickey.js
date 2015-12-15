@@ -352,10 +352,14 @@ function Mickey(parent, options) {
   };
 
   mouse.position = function() {
-    return {
-      x: mouse.pos.x,
-      y: mouse.pos.y
-    };
+    if (mouse.el) {
+      return createBox(mouse.el).center();
+    } else {
+      return {
+        x: mouse.pos.x,
+        y: mouse.pos.y
+      };
+    }
   };
 
   mouse.move = function(dir) {
