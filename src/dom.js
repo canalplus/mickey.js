@@ -1,7 +1,3 @@
-function $first(el, selector) {
-  return el.querySelector(selector);
-}
-
 function $find(el, selector) {
   var els = el.querySelectorAll(selector);
   var arr = [];
@@ -22,7 +18,6 @@ function $rmvClass(el, cl, rem) {
 }
 
 module.exports = {
-  $first,
   $find,
   $addClass,
   $rmvClass,

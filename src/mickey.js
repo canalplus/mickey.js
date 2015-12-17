@@ -1,5 +1,5 @@
 const { Box, createBox } = require("./box");
-const { $first, $find, $rmvClass, $addClass } = require("./dom");
+const { $find, $rmvClass, $addClass } = require("./dom");
 const {
   dot,
   vec,
@@ -112,10 +112,6 @@ function Mickey(parent, options) {
 
   function isLimit(el) {
     return !!el && el.hasAttribute(__PREFIX__ + "limit");
-  }
-
-  function isTracked(el) {
-    return !!el && el.hasAttribute(__PREFIX__ + "track");
   }
 
   function isSelected(el) {
@@ -234,7 +230,7 @@ function Mickey(parent, options) {
   // position from a set of given DOM elements.
   function findHovered(pos, els) {
     const box = createBox(findClosest(pos, els));
-    if (box && box.contains(pos, BASE)) {
+    if (box && box.contains(pos)) {
       return box.el;
     }
   }

@@ -1,5 +1,3 @@
-var { vec, dot } = require("./math");
-
 function createBox(el) {
   if (!el)
     return;
@@ -26,14 +24,11 @@ function Box(el, r) {
   this._r = r;
 }
 
-Box.prototype.contains = function(pos, base) {
-  var c = this.center();
-  var v = vec(c, this.bound(base.down));
-  var h = vec(c, this.bound(base.right));
-  var x = vec(c, pos);
+Box.prototype.contains = function(pos) {
+  const { top, right, bottom, left } = this._r;
   return (
-    2 * Math.abs(dot(v, x)) <= this._r.height &&
-    2 * Math.abs(dot(h, x)) <= this._r.width
+    pos.y >= top  && pos.y <= bottom &&
+    pos.x >= left && pos.x <= right
   );
 };
 
